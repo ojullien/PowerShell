@@ -36,13 +36,14 @@ Powershell Version: 5.1
  Save data to external disk
 
 #>
-
+[CmdletBinding()]
 Param(
     [switch] $bequiet,
     [switch] $logtofile,
     [switch] $waituser,
-    [switch] $f220,
-    [switch] $test
+    [Parameter(Mandatory=$True,Position=1)]
+    [ValidateNotNullOrEmpty()]
+    [string] $cfg = 'default'
 )
 
 Set-StrictMode -Version Latest
@@ -56,7 +57,7 @@ New-Variable -Name m_OPTION_WAIT -Force -Option Constant,AllScope -Value $( if( 
 #  Include sys files
 # -----------------------------------------------------------------------------
 . ("$PWD\sys\cfg\constant.ps1")
-. ("$PWD\sys\inc\writer.ps1")
+. ("$m_DIR_SYS\inc\cwriter.ps1")
 
 try {
     $pWriter = [CWriter]::new()
@@ -68,27 +69,28 @@ try {
     }
 }
 catch {
-    "ERROR: Cannot load writer: $_"
+    "ERROR: Cannot load cwriter: $_"
     Exit
 }
 
-. ("$PWD\sys\inc\filesystem.ps1")
-. ("$PWD\sys\inc\process.ps1")
-. ("$PWD\sys\cfg\main.ps1")
+. ("$m_DIR_SYS\inc\cdrive.ps1")
+. ("$m_DIR_SYS\inc\cprocess.ps1")
+. ("$m_DIR_SYS\inc\cvalidator.ps1")
+. ("$m_DIR_SYS\cfg\main.ps1")
 
 # -----------------------------------------------------------------------------
 #  Include app files
 # -----------------------------------------------------------------------------
-. ("$PWD\app\saveto\inc\saveto.ps1")
-if( $test.IsPresent ) {
-    . ("$PWD\app\saveto\cfg\test.ps1")
-} elseif( $f220.IsPresent ) {
-    . ("$PWD\app\saveto\cfg\f220.ps1")
+$sCfgPath = "$m_DIR_APP\saveto\cfg\$cfg.cfg.ps1"
+if( ! $( Test-Path -LiteralPath $sCfgPath -PathType Leaf )) {
+    $pWriter.error( "$sCfgPath is missing! Aborting ..." )
+    Exit
 } else {
-    . ("$PWD\app\saveto\cfg\wd120.ps1")
+    . ($sCfgPath)
 }
-. ("$PWD\app\saveto\cfg\saveto.ps1")
-
+. ("$m_DIR_APP\saveto\inc\csaveto.ps1")
+. ("$m_DIR_APP\saveto\cfg\saveto.ps1")
+Exit
 # -----------------------------------------------------------------------------
 #  Save to
 # -----------------------------------------------------------------------------

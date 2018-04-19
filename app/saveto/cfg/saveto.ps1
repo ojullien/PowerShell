@@ -41,11 +41,28 @@ Powershell Version: 5.1
 # Trace
 # -----------------------------------------------------------------------------
 $pWriter.separateLine()
+
 $pWriter.notice( "App configuration" )
-[CValidator]::checkDir( [Object] $pWriter, "`tSource: $pSource ", $pSource.getCheckDir() ) > $null
-[CValidator]::checkDir( [Object] $pWriter, "`tDestination: $pDestination ", $pDestination.getCheckDir() ) > $null
+$pWriter.noticel( "`tSource: $pSource " )
+if( $pSource.testPath() -and $pSource.isReady() ) {
+    $pWriter.success( "exists" )
+} else {
+    $pWriter.error( "is missing" )
+}
+
+$pWriter.noticel( "`tDestination: $pDestination " )
+if( $pDestination.testPath() -and $pDestination.isReady() ) {
+    $pWriter.success( "exists" )
+} else {
+    $pWriter.error( "is missing" )
+}
+
 $pWriter.noticel( "`tList directories: " )
 foreach( $sDir in $aLISTDIR) {
     $pWriter.noticel( "$sDir " )
+    $sPath = $pSource.getDriveLetter() + "\" + $pSource.getSubFolder() + "\" + $sDir
+    if( ! $( Test-Path -LiteralPath $sPath -PathType Container )) {
+        $pWriter.noticel( "(!is missing) " )
+    }
 }
 $pWriter.notice( "" )

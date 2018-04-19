@@ -20,7 +20,7 @@
 
 .EXTERNALMODULEDEPENDENCIES
 
-.REQUIREDSCRIPTS sys,app\saveto
+.REQUIREDSCRIPTS sys
 
 .EXTERNALSCRIPTDEPENDENCIES
 
@@ -33,10 +33,10 @@ Powershell Version: 5.1
 <#
 
 .DESCRIPTION
- save-to WD120 Configuration file
+ Default save-to configuration file
 
 #>
 
-[CDrive] $pSource = [CDrive]::new( "H:", "HITACHI 250Go", "250Go" )
-[CDrive] $pDestination = [CDrive]::new( "J:", "WD PASSPORT 120Go", "120Go" )
-[string[]] $aLISTDIR = "Docs", "Work", "Ebook", "Design", "Code", "Soft", "Drivers"
+[CDrive] $pSource = [CDrive]::new().setDriveLetter("C:").setVolumeLabel("OS")
+[CDrive] $pDestination = [CDrive]::new().setDriveLetter("C:").setSubFolder('Temp').setVolumeLabel("OS")
+[string[]] $aLISTDIR = "dir1", "dir2"
