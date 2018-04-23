@@ -69,7 +69,7 @@ try {
     }
 }
 catch {
-    "ERROR: Cannot load cwriter: $_"
+    $pWriter.error( "ERROR: Cannot load cwriter: $_" )
     Exit
 }
 
@@ -90,28 +90,27 @@ if( ! $( Test-Path -LiteralPath $sCfgPath -PathType Leaf )) {
 }
 . ("$m_DIR_APP\saveto\inc\csaveto.ps1")
 . ("$m_DIR_APP\saveto\cfg\saveto.ps1")
-Exit
+
 # -----------------------------------------------------------------------------
 #  Save to
 # -----------------------------------------------------------------------------
 
 $pWriter.separateLine()
 
-# Clean log directory
-foreach( $sName in "robocopy", "contig" ) {
-    $pWriter.notice( "Cleaning '$sName-*.log' files from '$m_DIR_LOG'" )
-    Remove-Item "$m_DIR_LOG\$sName-*.log"
+try {
+    $pSaveTo = [CSaveTo]::new( [string] $m_DIR_LOG ).setWriter( [CWriter] $pWriter ).setSource( [CDrive] $pSource ).setDestination( [CDrive] $pDestination )
 }
-
-# Check source
-if( -Not [CValidator]::existsFolder( $pSource.getCheckDir() )) {
-    $pWriter.error( "$pSource is missing! Aborting ..." )
+catch {
+    $pWriter.error( "Cannot load cwriter: $_" )
     Exit
 }
 
-# Check destination
-if( -Not [CValidator]::existsFolder( $pDestination.getCheckDir() )) {
-    $pWriter.error( "$pDestination is missing! Aborting ..." )
+# Clean log directory
+$pSaveTo.cleanLog()
+
+# Check source and destination drives
+if( !$pSaveTo.isReadySource() -or !$pSaveTo.isReadyDestination() ) {
+    $pWriter.notice( "Aborting ..." )
     Exit
 }
 
@@ -136,21 +135,19 @@ if( -not $bConfirmed ) {
 
 # Copy
 foreach( $sDir in $aLISTDIR ) {
+
     $pWriter.separateLine()
-    $pProcess = [CRobocopy]::new( "$($pSource.get_m_sDrive())\$sDir", "$($pDestination.get_m_sDrive())\$sDir", "$m_DIR_LOG\robocopy-$sDir.log" )
-    $bError = $pProcess.setWriter( $pWriter ).run()
-    Remove-Variable -Name [Object]$pProcess
-    if( -Not $bError ) {
+
+    if( !$pSaveTo.robocopy( $sDir ) -or !$pSaveTo.contig( $sDir ) ) {
         $pWriter.notice( "Aborting ...")
-        Exit
+        break
     }
-    $pProcess = [CContiger]::new( "$($pDestination.get_m_sDrive())\$sDir" )
-    $bError = $pProcess.setWriter( $pWriter ).run()
-    Remove-Variable -Name [Object]$pProcess
-    if( -Not $bError ) {
-        $pWriter.notice( "Aborting ...")
-        Exit
-    }
+
 }
+
+Remove-Variable -Name [CSaveTo]$pSaveTo
+Remove-Variable -Name [CDrive]$pSource
+Remove-Variable -Name [CDrive]$pDestination
+Remove-Variable -Name [CWriter]$pWriter
 
 Set-StrictMode -Off
