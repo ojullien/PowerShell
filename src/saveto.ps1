@@ -57,23 +57,26 @@ New-Variable -Name m_OPTION_WAIT -Force -Option Constant,AllScope -Value $( if( 
 #  Include sys files
 # -----------------------------------------------------------------------------
 . ("$PWD\sys\cfg\constant.ps1")
-. ("$m_DIR_SYS\inc\cwriter.ps1")
+. ("$m_DIR_SYS\inc\Writer\Output\COutputAbstract.ps1")
+. ("$m_DIR_SYS\inc\Writer\CWriter.ps1")
 
 try {
     $pWriter = [CWriter]::new()
     if( -Not $bequiet.IsPresent ) {
+        . ("$m_DIR_SYS\inc\Writer\Output\COutputHost.ps1")
         $pWriter.addOutput( [COutputHost]::new() )
     }
     if( $logtofile.IsPresent ) {
+        . ("$m_DIR_SYS\inc\Writer\Output\COutputLog.ps1")
         $pWriter.addOutput( [COutputLog]::new( $m_DIR_LOG_PATH ) )
     }
 }
 catch {
-    $pWriter.error( "ERROR: Cannot load cwriter: $_" )
+    $pWriter.error( "ERROR: Cannot load Writer module: $_" )
     Exit
 }
 
-. ("$m_DIR_SYS\inc\cdrive.ps1")
+. ("$m_DIR_SYS\inc\DriveInfo\CDrive.ps1")
 . ("$m_DIR_SYS\inc\cprocess.ps1")
 . ("$m_DIR_SYS\inc\cvalidator.ps1")
 . ("$m_DIR_SYS\cfg\main.ps1")
