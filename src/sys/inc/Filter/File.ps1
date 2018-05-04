@@ -1,8 +1,8 @@
 <#PSScriptInfo
 
-.VERSION 1.0.0
+.VERSION 1.1.0
 
-.GUID e6b27d66-3c4d-446c-8895-528e4358f765
+.GUID e6b27d66-3c4d-446c-8895-da21d91681a2
 
 .AUTHOR Olivier Jullien
 
@@ -20,10 +20,10 @@
 
 .EXTERNALMODULEDEPENDENCIES
 
-.REQUIREDSCRIPTS sys\inc\writer.ps1
+.REQUIREDSCRIPTS sys\inc\writer
 
 .RELEASENOTES
-Date: 20180409
+Date: 20180501
 Powershell Version: 5.1
 
 #>
@@ -31,62 +31,55 @@ Powershell Version: 5.1
 <#
 
 .DESCRIPTION
- File System functions
+ File filter class
 
 #>
 
-class CValidator {
+class File : FilterAbstract {
 
     # Properties
 
     # Constructors
 
-    CValidator() {}
+    File() {}
 
     # Methods
 
-    static [bool] existsFolder( [string] $sPath ) {
+    [bool] isValid( [string] $sPath ) {
     <#
     .SYNOPSIS
-        Checks if a directory exists.
+        Determines whether the syntax of the path is correct.
     .DESCRIPTION
         See synopsis.
     .EXAMPLE
-        [CValidator]::existsFolder( 'path of the folder' )
-    .PARAMETER sTxt
+        isValid( 'path of the file' )
+    .PARAMETER sPath
         The path to test.
     #>
         if( [string]::IsNullOrWhiteSpace( $sPath ) ) {
-            throw "Usage: [CValidator]::existsFolder( <path as string> )"
+            throw "Usage: [File]::isValid( <path as string> )"
         }
-        return $( Test-Path -LiteralPath $sPath -PathType Container )
-    }
 
-    static [bool] checkDir( [CWriter] $pWriter, [string] $sTxt, [string] $sPath ) {
-    <#
-    .SYNOPSIS
-        Checks if a directory exists.
-        If the folder exits then writes a success type message and returns true.
-        If the folder does not exit then writes an error type message and returns false.
-    .DESCRIPTION
-        See synopsis.
-    .EXAMPLE
-        [CValidator]::checkDir( <Instance of CWriter>, 'Text to display', 'path of the folder' )
-    .PARAMETER pWriter
-        An instance of writer.
-    .PARAMETER sTxt
-        The text to write.
-    .PARAMETER sTxt
-        The path to test.
-    #>
-        $pWriter.noticel( $sTxt )
-        if( [CValidator]::existsFolder( $sPath ) ) {
-            $pWriter.success( "exists" )
-            $bReturn = $true
-        } else {
-            $pWriter.error( "is missing" )
-            $bReturn = $false
+        # Validate using Test-Path
+        $sPath = [string] $sPath.Trim().Trim( [system.io.path]::DirectorySeparatorChar )
+        $bReturn = $( Test-Path -LiteralPath $sPath -IsValid )
+
+        if( $bReturn ) {
+            # Perform extra-check on each path parts looking for ':'
+            $pathParts = $sPath.Split( [system.io.path]::DirectorySeparatorChar )
+            foreach( $sPart in $pathParts ) {
+                if( $( $sPart.Length -eq 2 ) -and $( $sPart[1] -eq ':' ) ){
+                    # Qualifier / drive
+                    continue
+                } elseif( $sPart.IndexOfAny( [System.IO.Path]::GetInvalidFileNameChars() ) -ne -1 ) {
+                    $bReturn = $false
+                    break
+                } else {
+                    continue
+                }
+            }
         }
+
         return $bReturn
     }
 
@@ -107,7 +100,7 @@ class CValidator {
         return $( Test-Path -LiteralPath $sPath -PathType Leaf )
     }
 
-    static [bool] checkFile( [CWriter] $pWriter, [string] $sTxt, [string] $sPath ) {
+    static [bool] checkFile( [Writer] $pWriter, [string] $sTxt, [string] $sPath ) {
     <#
     .SYNOPSIS
         Checks if a file exists.
@@ -116,7 +109,7 @@ class CValidator {
     .DESCRIPTION
         See synopsis.
     .EXAMPLE
-        [CValidator]::checkFile( <Instance of CWriter>, 'Text to display', 'path of the file' )
+        [CValidator]::checkFile( <Instance of Writer>, 'Text to display', 'path of the file' )
     .PARAMETER pWriter
         An instance of writer.
     .PARAMETER sTxt

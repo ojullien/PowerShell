@@ -25,7 +25,7 @@
 .EXTERNALSCRIPTDEPENDENCIES
 
 .RELEASENOTES
-Date: 20180409
+Date: 20180501
 Powershell Version: 5.1
 
 #>
@@ -46,13 +46,13 @@ New-Variable -Name m_DATE -Force -Option Constant,AllScope -Value (Get-Date -for
 # Main Directories
 # -----------------------------------------------------------------------------
 # Directory holds scripts
-New-Variable -Name m_DIR_SCRIPT -Force -Option Constant,AllScope -Value $PWD
+New-Variable -Name m_DIR_SCRIPT -Force -Option Constant,AllScope -Value (get-item $PWD).Parent.Fullname
 # Directory holds system files
-New-Variable -Name m_DIR_SYS -Force -Option Constant,AllScope -Value "$m_DIR_SCRIPT\sys"
+New-Variable -Name m_DIR_SYS -Force -Option Constant,AllScope -Value "$m_DIR_SCRIPT\src\sys"
 # Directory holds app files
-New-Variable -Name m_DIR_APP -Force -Option Constant,AllScope -Value "$m_DIR_SCRIPT\app"
+New-Variable -Name m_DIR_APP -Force -Option Constant,AllScope -Value "$m_DIR_SCRIPT\src\app"
 # Directory holds log
-New-Variable -Name m_DIR_LOG -Force -Option Constant,AllScope -Value "$m_DIR_SCRIPT\log"
+New-Variable -Name m_DIR_LOG -Force -Option Constant,AllScope -Value "C:\Temp"
 
 # -----------------------------------------------------------------------------
 # Files

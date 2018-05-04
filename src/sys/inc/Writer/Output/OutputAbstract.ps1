@@ -1,6 +1,6 @@
 <#PSScriptInfo
 
-.VERSION 1.0.0
+.VERSION 1.1.0
 
 .GUID 2f89a2a1-6963-4867-a7e6-fc713a2a69a2
 
@@ -25,7 +25,7 @@
 .EXTERNALSCRIPTDEPENDENCIES
 
 .RELEASENOTES
-Date: 20180409
+Date: 20180501
 Powershell Version: 5.1
 
 #>
@@ -37,7 +37,7 @@ Powershell Version: 5.1
 
 #>
 
-class COutputAbstract {
+class OutputAbstract {
 
     # Properties
 
@@ -45,7 +45,7 @@ class COutputAbstract {
 
     # Constructors
 
-    COutputAbstract() {
+    OutputAbstract() {
     <#
     .SYNOPSIS
         Abstract constructor. This class must be overridden.
@@ -54,7 +54,7 @@ class COutputAbstract {
     #>
         $oType = $this.GetType()
 
-        if( $oType -eq [COutputAbstract] )
+        if( $oType -eq [OutputAbstract] )
         {
             throw("Class $oType must be inherited")
         }

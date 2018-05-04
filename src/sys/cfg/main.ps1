@@ -46,8 +46,8 @@ $pWriter.notice( "`t$pWriter" )
 
 $pWriter.separateLine()
 $pWriter.notice( "Main configuration" )
-[CValidator]::checkDir( [CWriter] $pWriter, "`tScript directory: $m_DIR_SCRIPT ", $m_DIR_SCRIPT ) > $null
-[CValidator]::checkDir( [CWriter] $pWriter, "`tSystem directory: $m_DIR_SYS ", $m_DIR_SYS ) > $null
-[CValidator]::checkDir( [CWriter] $pWriter, "`tApp directory: $m_DIR_APP ", $m_DIR_APP ) > $null
-[CValidator]::checkDir( [CWriter] $pWriter, "`tLog directory: $m_DIR_LOG ", $m_DIR_LOG ) > $null
-[CValidator]::checkFile( [CWriter] $pWriter, "`tLog file is: $m_DIR_LOG_PATH ", $m_DIR_LOG_PATH ) > $null
+[CValidator]::checkDir( [Writer] $pWriter, "`tScript directory: $m_DIR_SCRIPT ", $m_DIR_SCRIPT ) > $null
+[CValidator]::checkDir( [Writer] $pWriter, "`tSystem directory: $m_DIR_SYS ", $m_DIR_SYS ) > $null
+[CValidator]::checkDir( [Writer] $pWriter, "`tApp directory: $m_DIR_APP ", $m_DIR_APP ) > $null
+[CValidator]::checkDir( [Writer] $pWriter, "`tLog directory: $m_DIR_LOG ", $m_DIR_LOG ) > $null
+[CValidator]::checkFile( [Writer] $pWriter, "`tLog file is: $m_DIR_LOG_PATH ", $m_DIR_LOG_PATH ) > $null

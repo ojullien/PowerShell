@@ -1,6 +1,6 @@
 <#PSScriptInfo
 
-.VERSION 1.0.0
+.VERSION 1.1.0
 
 .GUID 8c6b4039-3915-45f5-90ad-1b9bc864dd2e
 
@@ -20,12 +20,12 @@
 
 .EXTERNALMODULEDEPENDENCIES
 
-.REQUIREDSCRIPTS sys,app\saveto
+.REQUIREDSCRIPTS sys/Writer,app/saveto
 
 .EXTERNALSCRIPTDEPENDENCIES
 
 .RELEASENOTES
-Date: 20180409
+Date: 20180501
 Powershell Version: 5.1
 
 #>
@@ -57,18 +57,18 @@ New-Variable -Name m_OPTION_WAIT -Force -Option Constant,AllScope -Value $( if( 
 #  Include sys files
 # -----------------------------------------------------------------------------
 . ("$PWD\sys\cfg\constant.ps1")
-. ("$m_DIR_SYS\inc\Writer\Output\COutputAbstract.ps1")
-. ("$m_DIR_SYS\inc\Writer\CWriter.ps1")
+. ("$m_DIR_SYS\inc\Writer\Output\OutputAbstract.ps1")
+. ("$m_DIR_SYS\inc\Writer\Writer.ps1")
 
 try {
-    $pWriter = [CWriter]::new()
+    $pWriter = [Writer]::new()
     if( -Not $bequiet.IsPresent ) {
-        . ("$m_DIR_SYS\inc\Writer\Output\COutputHost.ps1")
-        $pWriter.addOutput( [COutputHost]::new() )
+        . ("$m_DIR_SYS\inc\Writer\Output\OutputHost.ps1")
+        $pWriter.addOutput( [OutputHost]::new() )
     }
     if( $logtofile.IsPresent ) {
-        . ("$m_DIR_SYS\inc\Writer\Output\COutputLog.ps1")
-        $pWriter.addOutput( [COutputLog]::new( $m_DIR_LOG_PATH ) )
+        . ("$m_DIR_SYS\inc\Writer\Output\OutputLog.ps1")
+        $pWriter.addOutput( [OutputLog]::new( $m_DIR_LOG_PATH ) )
     }
 }
 catch {
@@ -76,7 +76,7 @@ catch {
     Exit
 }
 
-. ("$m_DIR_SYS\inc\DriveInfo\CDrive.ps1")
+. ("$m_DIR_SYS\inc\DriveInfo\Drive.ps1")
 . ("$m_DIR_SYS\inc\cprocess.ps1")
 . ("$m_DIR_SYS\inc\cvalidator.ps1")
 . ("$m_DIR_SYS\cfg\main.ps1")
@@ -91,7 +91,7 @@ if( ! $( Test-Path -LiteralPath $sCfgPath -PathType Leaf )) {
 } else {
     . ($sCfgPath)
 }
-. ("$m_DIR_APP\saveto\inc\csaveto.ps1")
+. ("$m_DIR_APP\saveto\inc\SaveTo.ps1")
 . ("$m_DIR_APP\saveto\cfg\saveto.ps1")
 
 # -----------------------------------------------------------------------------
@@ -101,10 +101,10 @@ if( ! $( Test-Path -LiteralPath $sCfgPath -PathType Leaf )) {
 $pWriter.separateLine()
 
 try {
-    $pSaveTo = [CSaveTo]::new( [string] $m_DIR_LOG ).setWriter( [CWriter] $pWriter ).setSource( [CDrive] $pSource ).setDestination( [CDrive] $pDestination )
+    $pSaveTo = [SaveTo]::new( [string] $m_DIR_LOG ).setWriter( [Writer] $pWriter ).setSource( [Drive] $pSource ).setDestination( [Drive] $pDestination )
 }
 catch {
-    $pWriter.error( "Cannot load cwriter: $_" )
+    $pWriter.error( "Cannot load Writer: $_" )
     Exit
 }
 
@@ -148,9 +148,9 @@ foreach( $sDir in $aLISTDIR ) {
 
 }
 
-Remove-Variable -Name [CSaveTo]$pSaveTo
-Remove-Variable -Name [CDrive]$pSource
-Remove-Variable -Name [CDrive]$pDestination
-Remove-Variable -Name [CWriter]$pWriter
+Remove-Variable -Name [SaveTo]$pSaveTo
+Remove-Variable -Name [Drive]$pSource
+Remove-Variable -Name [Drive]$pDestination
+Remove-Variable -Name [Writer]$pWriter
 
 Set-StrictMode -Off

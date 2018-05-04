@@ -1,6 +1,6 @@
 <#PSScriptInfo
 
-.VERSION 1.0.0
+.VERSION 1.1.0
 
 .GUID c903f328-a3bd-4473-82d3-61ee784e43c9
 
@@ -25,7 +25,7 @@
 .EXTERNALSCRIPTDEPENDENCIES
 
 .RELEASENOTES
-Date: 20180409
+Date: 20180501
 Powershell Version: 5.1
 
 #>
@@ -33,7 +33,7 @@ Powershell Version: 5.1
 <#
 
 .DESCRIPTION
- CDrive classes and functions
+ Drive classes and functions
 
 #>
 
@@ -41,7 +41,7 @@ Powershell Version: 5.1
 # Drive object
 # -----------------------------------------------------------------------------
 
-class CDrive {
+class Drive {
 
     # Properties
 
@@ -54,15 +54,15 @@ class CDrive {
 
     # Constructors
 
-    CDrive() {}
+    Drive() {}
 
     # Methods
 
-    [CDrive] setDriveLetter( [string] $sDriveLetter ) {
+    [Drive] setDriveLetter( [string] $sDriveLetter ) {
         if( [string]::IsNullOrWhiteSpace( $sDriveLetter ) ) {
-                throw 'Usage: [CDrive]$object.setDriveLetter( <Letter of the drive like c:> )'
+                throw 'Usage: [Drive]$object.setDriveLetter( <Letter of the drive like c:> )'
         }
-        $sDriveLetter = $sDriveLetter.Trim().TrimEnd('\').ToUpper()
+        $sDriveLetter = $sDriveLetter.Trim().TrimEnd( [system.io.path]::DirectorySeparatorChar ).ToUpper()
         if( $sDriveLetter.Length -gt 2 ) {
             $sDriveLetter = $sDriveLetter.Substring( 0, 2 )
         }
@@ -77,11 +77,11 @@ class CDrive {
         return $this.m_sDriveLetter
     }
 
-    [CDrive] setSubFolder( [string] $sSubFolder ) {
+    [Drive] setSubFolder( [string] $sSubFolder ) {
         if( [string]::IsNullOrWhiteSpace( $sSubFolder ) ) {
-            throw 'Usage: [CDrive]$object.setSubFolder( <folder name or path like windows\system32> )'
+            throw 'Usage: [Drive]$object.setSubFolder( <folder name or path like windows\system32> )'
         }
-        $this.m_sSubFolder = $sSubFolder.Trim().Trim('\')
+        $this.m_sSubFolder = $sSubFolder.Trim().Trim( [system.io.path]::DirectorySeparatorChar )
         return $this
     }
 
@@ -89,9 +89,9 @@ class CDrive {
         return $this.m_sSubFolder
     }
 
-    [CDrive] setVolumeLabel( [string] $sVolumeLabel ) {
+    [Drive] setVolumeLabel( [string] $sVolumeLabel ) {
         if( [string]::IsNullOrWhiteSpace( $sVolumeLabel ) ) {
-            throw 'Usage: [CDrive]$object.setVolumeLabel( <volume label> )'
+            throw 'Usage: [Drive]$object.setVolumeLabel( <volume label> )'
         }
         $this.m_sVolumeLabel = $sVolumeLabel.Trim()
         return $this

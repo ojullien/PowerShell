@@ -1,6 +1,6 @@
 <#PSScriptInfo
 
-.VERSION 1.0.0
+.VERSION 1.1.0
 
 .GUID 12bcc70f-27b5-4663-9551-3012a78db9a8
 
@@ -25,7 +25,7 @@
 .EXTERNALSCRIPTDEPENDENCIES
 
 .RELEASENOTES
-Date: 20180409
+Date: 20180501
 Powershell Version: 5.1
 
 #>
@@ -37,18 +37,18 @@ Powershell Version: 5.1
 
 #>
 
-class CSaveTo {
+class SaveTo {
 
     # Properties
 
     [ValidateNotNull()]
-    hidden [CWriter] $m_pWriter
+    hidden [Writer] $m_pWriter
 
     [ValidateNotNull()]
-    hidden [CDrive] $m_pSource
+    hidden [Drive] $m_pSource
 
     [ValidateNotNull()]
-    hidden [CDrive] $m_pDestination
+    hidden [Drive] $m_pDestination
 
     [ValidateNotNullOrEmpty()]
     hidden [string] $m_sLogPath = 'c:\Temp'
@@ -61,9 +61,9 @@ class CSaveTo {
 
     # Constructors
 
-    CSaveTo ( [string] $sPath ) {
+    SaveTo ( [string] $sPath ) {
         if( [string]::IsNullOrWhiteSpace( $sPath )) {
-            throw "Usage: [CSaveTo]::new( <log path as string> )"
+            throw "Usage: [SaveTo]::new( <log path as string> )"
         }
         if( -Not $( Test-Path -LiteralPath $sPath -PathType Container )) {
             throw "The log path must be valid"
@@ -74,49 +74,49 @@ class CSaveTo {
     # Class methods
 
     [String] ToString() {
-        return "[CSaveTo] Configuration`n`tSource: $($this.m_pSource)`n`tDestination: $($this.m_pDestination)"
+        return "[SaveTo] Configuration`n`tSource: $($this.m_pSource)`n`tDestination: $($this.m_pDestination)"
     }
 
-    [CSaveTo] setWriter( [CWriter] $pWriter ) {
+    [SaveTo] setWriter( [Writer] $pWriter ) {
     <#
     .SYNOPSIS
         Set the writer.
     .DESCRIPTION
         See synopsis.
     .EXAMPLE
-        $pSaveTo.setWriter( <instance of CWriter> )
+        $pSaveTo.setWriter( <instance of Writer> )
     .PARAMETER pWriter
-        An instance of CWriter.
+        An instance of Writer.
     #>
         $this.m_pWriter = $pWriter
         return $this
     }
 
-    [CSaveTo] setSource( [CDrive] $pDrive ) {
+    [SaveTo] setSource( [Drive] $pDrive ) {
     <#
     .SYNOPSIS
         Set the source drive.
     .DESCRIPTION
         See synopsis.
     .EXAMPLE
-        $pSaveTo.setSource( <instance of CDrive> )
+        $pSaveTo.setSource( <instance of Drive> )
     .PARAMETER pDrive
-        An instance of CDrive.
+        An instance of Drive.
     #>
         $this.m_pSource = $pDrive
         return $this
     }
 
-    [CSaveTo] setDestination( [CDrive] $pDrive ) {
+    [SaveTo] setDestination( [Drive] $pDrive ) {
     <#
     .SYNOPSIS
         Set the destination drive.
     .DESCRIPTION
         See synopsis.
     .EXAMPLE
-        $pSaveTo.setDestination( <instance of CDrive> )
+        $pSaveTo.setDestination( <instance of Drive> )
     .PARAMETER pDrive
-        An instance of CDrive.
+        An instance of Drive.
     #>
         $this.m_pDestination = $pDrive
         return $this
@@ -191,7 +191,7 @@ class CSaveTo {
         The folder name
     #>
         if( [string]::IsNullOrWhiteSpace( $sFolder )) {
-            throw "Usage: [CSaveTo]::robocopy( <folder name as string> )"
+            throw "Usage: [SaveTo]::robocopy( <folder name as string> )"
         }
 
         [bool] $bReturn = $false
@@ -232,7 +232,7 @@ class CSaveTo {
         The folder name
     #>
         if( [string]::IsNullOrWhiteSpace( $sFolder )) {
-            throw "Usage: [CSaveTo]::contig( <folder name as string> )"
+            throw "Usage: [SaveTo]::contig( <folder name as string> )"
         }
 
         [bool] $bReturn = $false

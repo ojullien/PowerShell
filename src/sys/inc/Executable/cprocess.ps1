@@ -49,7 +49,7 @@ class CProcess {
     hidden [string]   $m_sExePath
     hidden [bool]     $m_bUseShellExecute = $false
     hidden [bool]     $m_RedirectStandardOutput = $true
-    hidden [CWriter]  $m_pWriter
+    hidden [Writer]  $m_pWriter
 
     # Constructors
 
@@ -74,16 +74,16 @@ class CProcess {
         return "Command: " + $this.m_sExePath + "`nOptions: " + $this.m_aArguments
     }
 
-    [CProcess] setWriter( [CWriter] $pWriter ) {
+    [CProcess] setWriter( [Writer] $pWriter ) {
     <#
     .SYNOPSIS
         Set the writer.
     .DESCRIPTION
         See synopsis.
     .EXAMPLE
-        $pProcess.setWriter( <instance of CWriter> )
+        $pProcess.setWriter( <instance of Writer> )
     .PARAMETER pWriter
-        An instance of CWriter.
+        An instance of Writer.
     #>
         $this.m_pWriter = $pWriter
         return $this

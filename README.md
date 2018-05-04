@@ -4,7 +4,7 @@ Personal PowerShell scripting projects.
 
 ## Setup & usage
 
-Require Powershell version: 5.1
+Require Powershell version: 6.0, .NET Framework 4.7, .NET Core
 
 ### saveto.ps1
 

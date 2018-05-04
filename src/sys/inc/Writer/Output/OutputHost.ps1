@@ -1,6 +1,6 @@
 <#PSScriptInfo
 
-.VERSION 1.0.0
+.VERSION 1.1.0
 
 .GUID 2f89a2a1-6963-4867-a7e6-fc713a2a69a4
 
@@ -20,12 +20,12 @@
 
 .EXTERNALMODULEDEPENDENCIES
 
-.REQUIREDSCRIPTS COutputAbstract.ps1
+.REQUIREDSCRIPTS Writer/Output/OutputAbstract.ps1
 
 .EXTERNALSCRIPTDEPENDENCIES
 
 .RELEASENOTES
-Date: 20180409
+Date: 20180501
 Powershell Version: 5.1
 
 #>
@@ -37,11 +37,11 @@ Powershell Version: 5.1
 
 #>
 
-class COutputHost : COutputAbstract {
+class OutputHost : OutputAbstract {
 
     # Constructors
 
-    COutputHost() {}
+    OutputHost() {}
 
     # Methods
 

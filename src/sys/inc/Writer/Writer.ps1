@@ -1,6 +1,6 @@
 <#PSScriptInfo
 
-.VERSION 1.0.0
+.VERSION 1.1.0
 
 .GUID 2f89a2a1-6963-4867-a7e6-fc713a2a69a1
 
@@ -20,12 +20,12 @@
 
 .EXTERNALMODULEDEPENDENCIES
 
-.REQUIREDSCRIPTS Output/COutputAbstract.ps1  
+.REQUIREDSCRIPTS Writer/Output/OutputAbstract.ps1
 
 .EXTERNALSCRIPTDEPENDENCIES
 
 .RELEASENOTES
-Date: 20180409
+Date: 20180501
 Powershell Version: 5.1
 
 #>
@@ -37,15 +37,15 @@ Powershell Version: 5.1
 
 #>
 
-class CWriter {
+class Writer {
 
     # Properties
 
-    hidden [COutputAbstract[]] $aOutputs = @()
+    hidden [OutputAbstract[]] $aOutputs = @()
 
     # Constructors
 
-    CWriter() {}
+    Writer() {}
 
     # Methods
 
@@ -59,16 +59,16 @@ class CWriter {
         return $sReturn
     }
 
-    [void] addOutput( [COutputAbstract] $pOutput ) {
+    [void] addOutput( [OutputAbstract] $pOutput ) {
     <#
     .SYNOPSIS
         Add an output to the writer.
     .DESCRIPTION
         See synopsis.
     .EXAMPLE
-        addOutput( [COutputHost]::new() )
+        addOutput( [OutputHost]::new() )
     .PARAMETER pOutput
-        An instance of COutputAbstract.
+        An instance of OutputAbstract.
     #>
         $this.aOutputs += $pOutput
     }

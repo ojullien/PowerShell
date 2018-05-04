@@ -1,8 +1,8 @@
 <#PSScriptInfo
 
-.VERSION 1.0.0
+.VERSION 1.1.0
 
-.GUID 519bda70-b405-4bab-8f15-de6ce8e74deb
+.GUID 8c6b4039-3915-45f5-90ad-1b9bc864dd19
 
 .AUTHOR Olivier Jullien
 
@@ -20,12 +20,12 @@
 
 .EXTERNALMODULEDEPENDENCIES
 
-.REQUIREDSCRIPTS sys
+.REQUIREDSCRIPTS
 
 .EXTERNALSCRIPTDEPENDENCIES
 
 .RELEASENOTES
-Date: 20180409
+Date: 20180501
 Powershell Version: 5.1
 
 #>
@@ -33,10 +33,12 @@ Powershell Version: 5.1
 <#
 
 .DESCRIPTION
- Default save-to configuration file
+ Common test functions
 
 #>
 
-[Drive] $pSource = [Drive]::new().setDriveLetter("C:").setVolumeLabel("OS")
-[Drive] $pDestination = [Drive]::new().setDriveLetter("C:").setSubFolder('Temp').setVolumeLabel("OS")
-[string[]] $aLISTDIR = "dir1", "dir2"
+Function New-TestObject( $value, $expected ) {
+    New-Object -TypeName PsObject -Property @{
+        theValueToTest = $value;
+        theExpectedReturn = $expected }
+}
