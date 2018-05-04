@@ -39,6 +39,7 @@ Powershell Version: 5.1
 #>
 
 Param(
+    [switch] $verbose,
     [switch] $bequiet,
     [switch] $logtofile
 )
@@ -53,9 +54,10 @@ $PSDefaultParameterValues['*:ErrorAction']='Stop'
 . ("$PWD\..\src\sys\cfg\constant.ps1")
 . ("$m_DIR_SYS\inc\Writer\Output\OutputAbstract.ps1")
 . ("$m_DIR_SYS\inc\Writer\Writer.ps1")
+. ("$m_DIR_SCRIPT\test\inc\Writer\Verbose.ps1")
 
 try {
-    $pWriter = [Writer]::new()
+    $pWriter = [Verbose]::new( $verbose.IsPresent, 80 )
     if( -Not $bequiet.IsPresent ) {
         . ("$m_DIR_SYS\inc\Writer\Output\OutputHost.ps1")
         $pWriter.addOutput( [OutputHost]::new() )
@@ -73,7 +75,7 @@ catch {
 # -----------------------------------------------------------------------------
 # Load Filter\Dir files
 # -----------------------------------------------------------------------------
-. ("$m_DIR_SCRIPT\test\sys\Filter\dir.ps1")
+
 . ("$m_DIR_SYS\inc\Filter\FilterAbstract.ps1")
 . ("$m_DIR_SYS\inc\Filter\Dir.ps1")
 
@@ -85,9 +87,16 @@ catch {
     Exit
 }
 
+# -----------------------------------------------------------------------------
+# Load data test
+# -----------------------------------------------------------------------------
+
+. ("$m_DIR_SCRIPT\test\data\Filter\Dir.ps1")
+
 # ------------------------------------------------------------------------------
 # Test
 # ------------------------------------------------------------------------------
+
 foreach( $item in $aTestDataCollection ) {
 
     $pWriter.separateLine()
