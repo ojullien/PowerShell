@@ -1,8 +1,8 @@
 <#PSScriptInfo
 
-.VERSION 1.1.0
+.VERSION 1.2.0
 
-.GUID 8c6b4039-3915-45f5-90ad-1b9bc864dd23
+.GUID 969dc39f-0001-4e61-9cfd-8e8df7ebebf6
 
 .AUTHOR Olivier Jullien
 
@@ -20,14 +20,15 @@
 
 .EXTERNALMODULEDEPENDENCIES
 
-.REQUIREDSCRIPTS sys\Writer, sys\Filter
+.REQUIREDSCRIPTS src\sys\inc\Writer, src\sys\inc\Filter\Path.ps1, src\sys\inc\Filter\Dir.ps1, test\sys\inc\Filter\Dir.ps1
 
 .EXTERNALSCRIPTDEPENDENCIES
 
 .RELEASENOTES
 Date: 20180501
-Powershell Version: 5.1
-.NET Framework 4.7
+Require Powershell Version: 6.0.2
+Require .NET Framework 4.7
+Require .NET Core
 
 #>
 
@@ -54,7 +55,7 @@ $PSDefaultParameterValues['*:ErrorAction']='Stop'
 . ("$PWD\..\src\sys\cfg\constant.ps1")
 . ("$m_DIR_SYS\inc\Writer\Output\OutputAbstract.ps1")
 . ("$m_DIR_SYS\inc\Writer\Writer.ps1")
-. ("$m_DIR_SCRIPT\test\inc\Writer\Verbose.ps1")
+. ("$m_DIR_SYS\inc\Writer\Verbose.ps1")
 
 try {
     $pWriter = [Verbose]::new( $verbose.IsPresent, 80 )
@@ -73,10 +74,11 @@ catch {
 }
 
 # -----------------------------------------------------------------------------
-# Load Filter\Dir files
+# Load Filter\Path files
 # -----------------------------------------------------------------------------
 
 . ("$m_DIR_SYS\inc\Filter\FilterAbstract.ps1")
+. ("$m_DIR_SYS\inc\Filter\Path.ps1")
 . ("$m_DIR_SYS\inc\Filter\Dir.ps1")
 
 try {
@@ -91,7 +93,7 @@ catch {
 # Load data test
 # -----------------------------------------------------------------------------
 
-. ("$m_DIR_SCRIPT\test\data\Filter\Dir.ps1")
+. ("$m_DIR_SCRIPT\test\sys\inc\Filter\Dir.ps1")
 
 # ------------------------------------------------------------------------------
 # Test
@@ -100,63 +102,73 @@ catch {
 foreach( $item in $aTestDataCollection ) {
 
     $pWriter.separateLine()
-    $pWriter.notice( "Testing: '$( $item.thePath )'" )
+    $pWriter.notice( "Testing: '$( $item.theInput )'" )
 
     try {
-
-        $pWriter.noticel( "`tisValid: " )
-        $result = $pDir.isValid( $item.thePath )
-        if( $result -eq $item.isValid ) {
-            $pWriter.success( "got: $result, expected:  $( $item.isValid )" )
-        } else {
-            $pWriter.error( "got: $result, expected:  $( $item.isValid )" )
-        }
-
-    } catch {
-
-        if( "Exception" -eq $item.isValid ) {
-            $pWriter.success( "got: Exception, expected:  $( $item.isValid )" )
-        } else {
-            $pWriter.error( "got: Exception, expected:  $( $item.isValid )" )
-        }
+        $pPath = [Path]::new( $item.theInput  )
+    }
+    catch {
+        $pWriter.error( "Cannot load Filter\Path module: $_" )
+        Exit
     }
 
+    # isValid
+
     try {
-
-        $pWriter.noticel( "`texists: " )
-        $result = $pDir.exists( $item.thePath )
-        if( $result -eq $item.exists ) {
-            $pWriter.success( "got: $result, expected:  $( $item.exists )" )
-        } else {
-            $pWriter.error( "got: $result, expected:  $( $item.exists )" )
-        }
-
+        # isValid
+        [bool] $bResult = $pDir.isValid( $pPath )
     } catch {
-
-        if( "Exception" -eq $item.exists ) {
-            $pWriter.success( "got: Exception, expected:  $( $item.exists )" )
+        if( $item.theExpected.Exception ) {
+            $pWriter.exceptionExpected( "isValid raised an expected exception:  $_" )
         } else {
-            $pWriter.error( "got: Exception, expected:  $( $item.exists )" )
+            $pWriter.exception( "isValid raised an exception:  $_" )
         }
+        continue
     }
 
+    $sBuffer = "`tisValid: '$([string]$bResult)' => '$( $item.theExpected.isValid )'"
+    if( $bResult -eq $item.theExpected.isValid ) {
+        $pWriter.success( $sBuffer )
+    } else {
+        $pWriter.error( $sBuffer )
+    }
+
+    # exists
     try {
-
-        $pWriter.noticel( "`tdoFilter: " )
-        $result = $pDir.doFilter( $item.thePath )
-        if( $result -eq $item.doFilter ) {
-            $pWriter.success( "got: $result, expected:  $( $item.doFilter )" )
-        } else {
-            $pWriter.error( "got: $result, expected:  $( $item.doFilter )" )
-        }
-
+        [bool] $bResult = $pDir.exists( $pPath )
     } catch {
-
-        if( "Exception" -eq $item.doFilter ) {
-            $pWriter.success( "got: Exception, expected:  $( $item.doFilter )" )
+        if( $item.theExpected.Exception ) {
+            $pWriter.exceptionExpected( "exists raised an expected exception:  $_" )
         } else {
-            $pWriter.error( "got: Exception, expected:  $( $item.doFilter )" )
+            $pWriter.exception( "exists raised an exception:  $_" )
         }
+        continue
+    }
+
+    $sBuffer = "`texists: '$([string]$bResult)' => '$( $item.theExpected.exists )'"
+    if( $bResult -eq $item.theExpected.exists ) {
+        $pWriter.success( $sBuffer )
+    } else {
+        $pWriter.error( $sBuffer )
+    }
+
+    # doFilter
+    try {
+        [string] $result = $pDir.doFilter( $pPath )
+    } catch {
+        if( $item.theExpected.Exception ) {
+            $pWriter.exceptionExpected( "doFilter raised an expected exception:  $_" )
+        } else {
+            $pWriter.exception( "doFilter raised an exception:  $_" )
+        }
+        continue
+    }
+
+    $sBuffer = "`tdoFilter: '$result' => '$( $item.theExpected.doFilter )'"
+    if( $result -eq $item.theExpected.doFilter ) {
+        $pWriter.success( $sBuffer )
+    } else {
+        $pWriter.error( $sBuffer )
     }
 
 }

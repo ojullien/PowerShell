@@ -1,8 +1,8 @@
 <#PSScriptInfo
 
-.VERSION 1.1.0
+.VERSION 1.2.0
 
-.GUID e6b27d66-3c4d-446c-8895-da21d91681a1
+.GUID 323d3bb5-0003-4013-8e9e-142f6d540831
 
 .AUTHOR Olivier Jullien
 
@@ -20,11 +20,13 @@
 
 .EXTERNALMODULEDEPENDENCIES
 
-.REQUIREDSCRIPTS sys\inc\writer
+.REQUIREDSCRIPTS sys\inc\Filter\FilterAbstract.ps1, sys\inc\Filter\Path.ps1
 
 .RELEASENOTES
 Date: 20180501
-Powershell Version: 5.1
+Require Powershell Version: 6.0.2
+Require .NET Framework 4.7
+Require .NET Core
 
 #>
 
@@ -43,9 +45,30 @@ class Dir : FilterAbstract {
 
     Dir() {}
 
+    Dir( [Path] $value ) {
+        $null = $this.doFilter( $value )
+    }
+
     # Methods
 
-    [bool] exists( [string] $sPath ) {
+    [bool] isValid( [Path] $pPath ) {
+        <#
+        .SYNOPSIS
+            Determines whether the syntax of the path is correct.
+        .DESCRIPTION
+            See synopsis.
+        .EXAMPLE
+            isValid( 'path of the folder' )
+        .PARAMETER sPath
+            The path to test as an instance of \sys\Filter\Path object.
+        #>
+            if( $pPath -eq $null ) {
+                throw "Usage: [Dir]::isValid( <path as an instance of \sys\Filter\Path object> )"
+            }
+            return $pPath.isValid()
+        }
+
+    [bool] exists( [Path] $pPath ) {
     <#
     .SYNOPSIS
         Determines whether all elements of a path exist.
@@ -53,64 +76,29 @@ class Dir : FilterAbstract {
         See synopsis.
     .EXAMPLE
         exists( 'path of the folder' )
-    .PARAMETER sPath
-        The path to test.
+    .PARAMETER pPath
+        The path to test as an instance of \sys\Filter\Path object.
     #>
-        if( [string]::IsNullOrWhiteSpace( $sPath ) ) {
-            throw "Usage: [Dir]::exists( <path as string> )"
+        # Initialize
+        [bool] $bReturn = $false
+
+        # Argument test
+        if( $pPath -eq $null ) {
+            throw "Usage: [Dir]::exists( <path as an instance of \sys\Filter\Path object> )"
         }
 
-        $bReturn = $false
+        # Test
         try {
-            $bReturn = $( $this.isValid( $sPath ) ) -and $( Test-Path -LiteralPath $sPath -PathType Container )
+            $bReturn = $pPath.isValid() -and $( Test-Path -LiteralPath "$([string]$pPath)" -PathType Container )
         }
         catch {
             $bReturn = $false
         }
-        return $bReturn
-    }
-
-    [bool] isValid( [string] $sPath ) {
-    <#
-    .SYNOPSIS
-        Determines whether the syntax of the path is correct.
-    .DESCRIPTION
-        See synopsis.
-    .EXAMPLE
-        isValid( 'path of the folder' )
-    .PARAMETER sPath
-        The path to test.
-    #>
-        if( [string]::IsNullOrWhiteSpace( $sPath ) ) {
-            throw "Usage: [Dir]::isValid( <path as string> )"
-        }
-
-        # Validate using Test-Path
-        $sPath = [string] $sPath.Trim().Trim( [system.io.path]::DirectorySeparatorChar )
-        $bReturn = $( Test-Path -LiteralPath $sPath -IsValid )
-
-        if( $bReturn ) {
-            # Perform extra-check on each path parts looking for ':'.
-            # None of .NET or Test-Path functions raise an error if a directory's
-            # name contains a ':'.
-            $pathParts = $sPath.Split( [system.io.path]::DirectorySeparatorChar )
-            foreach( $sPart in $pathParts ) {
-                if( $( $sPart.Length -eq 2 ) -and $( $sPart[1] -eq ':' ) ){
-                    # Qualifier / drive
-                    continue
-                } elseif( $sPart.IndexOfAny( [system.io.path]::GetInvalidFileNameChars() ) -ne -1 ) {
-                    $bReturn = $false
-                    break
-                } else {
-                    continue
-                }
-            }
-        }
 
         return $bReturn
     }
 
-    [bool] exists( [Writer] $pWriter, [string] $sTxt, [string] $sPath ) {
+    [bool] exists( [Writer] $pWriter, [string] $sTxt, [Path] $pPath ) {
     <#
     .SYNOPSIS
         Determines verbosely whether all elements of a path exist.
@@ -124,11 +112,11 @@ class Dir : FilterAbstract {
         An instance of writer class.
     .PARAMETER sTxt
         The text to write.
-    .PARAMETER sPath
-        The path to test.
+    .PARAMETER pPath
+        The path to test as an instance of \sys\Filter\Path object.
     #>
         $pWriter.noticel( $sTxt )
-        if( $this.exists( $sPath )) {
+        if( $this.exists( $pPath )) {
             $pWriter.success( "exists" )
             $bReturn = $true
         } else {
@@ -138,7 +126,7 @@ class Dir : FilterAbstract {
         return $bReturn
     }
 
-    [string] doFilter( [string] $value ) {
+    [string] doFilter( [Path] $value ) {
     <#
     .SYNOPSIS
         Returns Split-Path -parent $value
@@ -147,14 +135,14 @@ class Dir : FilterAbstract {
     .EXAMPLE
         doFilter( value )
     .PARAMETER value
-        The value to filter.
+        The value to filter as an instance of \sys\Filter\Path object.
     #>
-        if( [string]::IsNullOrWhiteSpace( $value ) ) {
-            throw "Usage: [Dir]::doFilter( <path as string> )"
+        if( $value -eq $null ) {
+            throw "Usage: [Dir]::doFilter( <path as an instance of \sys\Filter\Path object> )"
         }
 
-        if( $this.isValid( $value )) {
-            $sReturn = [string] $( Split-Path -parent $value )
+        if( $value.isValid() ) {
+            $sReturn = [string] $( Split-Path -parent "$([string]$value)" )
         } else {
             $sReturn = ''
         }

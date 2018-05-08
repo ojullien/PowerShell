@@ -46,8 +46,8 @@ Param(
 )
 
 Set-StrictMode -Version Latest
-#$ErrorActionPreference = "Stop"
-#$PSDefaultParameterValues['*:ErrorAction']='Stop'
+$ErrorActionPreference = "Stop"
+$PSDefaultParameterValues['*:ErrorAction']='Stop'
 
 # -----------------------------------------------------------------------------
 # Load sys files
@@ -102,45 +102,57 @@ catch {
 foreach( $item in $aTestDataCollection ) {
 
     $pWriter.separateLine()
-    $pWriter.notice( "Testing: '$( $item.thePath )'" )
+    $pWriter.notice( "Testing: '$( $item.theInput )'" )
 
     try {
-        $result = $pPath.doFilter( $item.thePath )
+        # isValid use doFilter
+        [bool] $bResult = $pPath.isValid( $item.theInput )
     } catch {
-        $pWriter.exception( "doFilter raised an exception:  $_" )
+        if( $item.theExpected.Exception ) {
+            $pWriter.exceptionExpected( "doFilter raised an expected exception:  $_" )
+        } else {
+            $pWriter.exception( "doFilter raised an exception:  $_" )
+        }
         continue
     }
 
-    $sBuffer = "`tdirectoryname: '$( $result.directoryname )' => '$( $item.doFilter.directoryname )'"
-    if( $result.directoryname -eq $item.doFilter.directoryname ) {
+    $sBuffer = "`tdirectoryname: '$( $pPath.directoryname() )' => '$( $item.theExpected.directoryname )'"
+    if( $pPath.directoryname() -eq $item.theExpected.directoryname ) {
         $pWriter.success( $sBuffer )
     } else {
         $pWriter.error( $sBuffer )
     }
 
-    $sBuffer = "`tfilename: '$( $result.filename )' => '$( $item.doFilter.filename )'"
-    if( $result.filename -eq $item.doFilter.filename ) {
+    $sBuffer = "`tfilename: '$( $pPath.filename() )' => '$( $item.theExpected.filename )'"
+    if( $pPath.filename() -eq $item.theExpected.filename ) {
         $pWriter.success( $sBuffer )
     } else {
         $pWriter.error( $sBuffer )
     }
 
-    $sBuffer = "`tbasename: '$( $result.basename )' => '$( $item.doFilter.basename )'"
-    if( $result.basename -eq $item.doFilter.basename ) {
+    $sBuffer = "`tbasename: '$( $pPath.basename() )' => '$( $item.theExpected.basename )'"
+    if( $pPath.basename() -eq $item.theExpected.basename ) {
         $pWriter.success( $sBuffer )
     } else {
         $pWriter.error( $sBuffer )
     }
 
-    $sBuffer = "`textension: '$( $result.extension )' => '$( $item.doFilter.extension )'"
-    if( $result.extension -eq $item.doFilter.extension ) {
+    $sBuffer = "`textension: '$( $pPath.extension() )' => '$( $item.theExpected.extension )'"
+    if( $pPath.extension() -eq $item.theExpected.extension ) {
         $pWriter.success( $sBuffer )
     } else {
         $pWriter.error( $sBuffer )
     }
 
-    $sBuffer = "`tPathRoot: '$( $result.PathRoot )' => '$( $item.doFilter.PathRoot )'"
-    if( $result.PathRoot -eq $item.doFilter.PathRoot ) {
+    $sBuffer = "`tpathroot: '$( $pPath.pathroot() )' => '$( $item.theExpected.pathroot )'"
+    if( $pPath.pathroot() -eq $item.theExpected.pathroot ) {
+        $pWriter.success( $sBuffer )
+    } else {
+        $pWriter.error( $sBuffer )
+    }
+
+    $sBuffer = "`tisValid: '$([string]$bResult)' => '$( $item.theExpected.isValid )'"
+    if( $bResult -eq $item.theExpected.isValid ) {
         $pWriter.success( $sBuffer )
     } else {
         $pWriter.error( $sBuffer )

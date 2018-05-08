@@ -1,8 +1,8 @@
 <#PSScriptInfo
 
-.VERSION 1.1.0
+.VERSION 1.2.0
 
-.GUID e6b27d66-3c4d-446c-8895-da21d91681a0
+.GUID 323d3bb5-0001-4013-8e9e-142f6d540831
 
 .AUTHOR Olivier Jullien
 
@@ -24,7 +24,9 @@
 
 .RELEASENOTES
 Date: 20180501
-Powershell Version: 5.1
+Require Powershell Version: 6.0.2
+Require .NET Framework 4.7
+Require .NET Core
 
 #>
 

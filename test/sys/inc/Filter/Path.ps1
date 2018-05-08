@@ -41,37 +41,40 @@ Require .NET Core
 
 Function New-TestPathObject( $path, $expected ) {
     New-Object -TypeName PsObject -Property @{
-        thePath = $path
-        doFilter = $expected }
+        theInput = $path
+        theExpected = $expected }
 }
 
 $aTestDataCollection = @()
 
-$aTestDataCollection += New-TestPathObject 'C:\does\not\exist\readme.txt' @{ directoryname = 'C:\does\not\exist'; filename = 'readme.txt'; basename =  'readme'; extension =  '.txt'; PathRoot =  'C:';}
-$aTestDataCollection += New-TestPathObject 'C:\does\not\exist\readme' @{ directoryname = 'C:\does\not\exist'; filename = 'readme'; basename =  'readme'; extension =  ''; PathRoot =  'C:';}
-$aTestDataCollection += New-TestPathObject 'C:\does\not\exist\.txt' @{ directoryname = 'C:\does\not\exist'; filename = '.txt'; basename =  ''; extension =  '.txt'; PathRoot =  'C:';}
-$aTestDataCollection += New-TestPathObject 'C:\readme.txt' @{ directoryname = 'C:\'; filename = 'readme.txt'; basename =  'readme'; extension =  '.txt'; PathRoot =  'C:';}
-$aTestDataCollection += New-TestPathObject 'C:\readme' @{ directoryname = 'C:\'; filename = 'readme'; basename =  'readme'; extension =  ''; PathRoot =  'C:';}
-$aTestDataCollection += New-TestPathObject 'C:\.txt' @{ directoryname = 'C:\'; filename = '.txt'; basename =  ''; extension =  '.txt'; PathRoot =  'C:';}
+$aTestDataCollection += New-TestPathObject 'C:\does\not\exist\readme.txt' @{ directoryname = 'C:\does\not\exist'; filename = 'readme.txt'; basename =  'readme'; extension =  '.txt'; pathroot =  'C:'; isValid = $true; Exception = $false}
+$aTestDataCollection += New-TestPathObject 'C:\does\not\exist\readme' @{ directoryname = 'C:\does\not\exist'; filename = 'readme'; basename =  'readme'; extension =  ''; pathroot =  'C:'; isValid = $true; Exception = $false}
+$aTestDataCollection += New-TestPathObject 'C:\does\not\exist\.txt' @{ directoryname = 'C:\does\not\exist'; filename = '.txt'; basename =  ''; extension =  '.txt'; pathroot =  'C:'; isValid = $true; Exception = $false}
+$aTestDataCollection += New-TestPathObject 'C:\readme.txt' @{ directoryname = 'C:\'; filename = 'readme.txt'; basename =  'readme'; extension =  '.txt'; pathroot =  'C:'; isValid = $true; Exception = $false}
+$aTestDataCollection += New-TestPathObject 'C:\readme' @{ directoryname = 'C:\'; filename = 'readme'; basename =  'readme'; extension =  ''; pathroot =  'C:'; isValid = $true; Exception = $false}
+$aTestDataCollection += New-TestPathObject 'C:\.txt' @{ directoryname = 'C:\'; filename = '.txt'; basename =  ''; extension =  '.txt'; pathroot =  'C:'; isValid = $true; Exception = $false}
 
 if( $PSVersionTable.PSVersion.Major -eq 6 ) {
-    $aTestDataCollection += New-TestPathObject 'C:\does\not\ex"st\readme.txt' @{ directoryname = 'C:\does\not\ex"st'; filename = 'readme.txt'; basename =  'readme'; extension =  '.txt'; PathRoot =  'C:';}
-    $aTestDataCollection += New-TestPathObject 'C:\does\not\ex<st\readme.txt' @{ directoryname = 'C:\does\not\ex<st'; filename = 'readme.txt'; basename =  'readme'; extension =  '.txt'; PathRoot =  'C:';}
-    $aTestDataCollection += New-TestPathObject 'C:\does\not\ex>st\readme.txt' @{ directoryname = 'C:\does\not\ex>st'; filename = 'readme.txt'; basename =  'readme'; extension =  '.txt'; PathRoot =  'C:';}
+    $aTestDataCollection += New-TestPathObject 'C:\does\not\ex"st\readme.txt' @{ directoryname = 'C:\does\not\ex"st'; filename = 'readme.txt'; basename =  'readme'; extension =  '.txt'; pathroot =  'C:'; isValid = $false; Exception = $false}
+    $aTestDataCollection += New-TestPathObject 'C:\does\not\ex<st\readme.txt' @{ directoryname = 'C:\does\not\ex<st'; filename = 'readme.txt'; basename =  'readme'; extension =  '.txt'; pathroot =  'C:'; isValid = $false; Exception = $false}
+    $aTestDataCollection += New-TestPathObject 'C:\does\not\ex>st\readme.txt' @{ directoryname = 'C:\does\not\ex>st'; filename = 'readme.txt'; basename =  'readme'; extension =  '.txt'; pathroot =  'C:'; isValid = $false; Exception = $false}
 } else {
-    $aTestDataCollection += New-TestPathObject 'C:\does\not\ex"st\readme.txt' @{ directoryname = ''; filename = ''; basename =  ''; extension =  ''; PathRoot =  '';}
-    $aTestDataCollection += New-TestPathObject 'C:\does\not\ex<st\readme.txt' @{ directoryname = ''; filename = ''; basename =  ''; extension =  ''; PathRoot =  '';}
-    $aTestDataCollection += New-TestPathObject 'C:\does\not\ex>st\readme.txt' @{ directoryname = ''; filename = ''; basename =  ''; extension =  ''; PathRoot =  '';}
+    $aTestDataCollection += New-TestPathObject 'C:\does\not\ex"st\readme.txt' @{ directoryname = ''; filename = ''; basename =  ''; extension =  ''; pathroot =  ''; isValid = $false; Exception = $false}
+    $aTestDataCollection += New-TestPathObject 'C:\does\not\ex<st\readme.txt' @{ directoryname = ''; filename = ''; basename =  ''; extension =  ''; pathroot =  ''; isValid = $false; Exception = $false}
+    $aTestDataCollection += New-TestPathObject 'C:\does\not\ex>st\readme.txt' @{ directoryname = ''; filename = ''; basename =  ''; extension =  ''; pathroot =  ''; isValid = $false; Exception = $false}
 }
-$aTestDataCollection += New-TestPathObject 'C:\does\not\ex|st\readme.txt' @{ directoryname = ''; filename = ''; basename =  ''; extension =  ''; PathRoot =  '';}
-$aTestDataCollection += New-TestPathObject 'C:\does\not\ex:st\readme.txt' @{ directoryname = 'C:\does\not\ex:st'; filename = 'readme.txt'; basename =  'readme'; extension =  '.txt'; PathRoot =  'C:';}
-$aTestDataCollection += New-TestPathObject 'C:\does\not\ex*st\readme.txt' @{ directoryname = 'C:\does\not\ex*st'; filename = 'readme.txt'; basename =  'readme'; extension =  '.txt'; PathRoot =  'C:';}
-$aTestDataCollection += New-TestPathObject 'C:\does\not\ex?st\readme.txt' @{ directoryname = 'C:\does\not\ex?st'; filename = 'readme.txt'; basename =  'readme'; extension =  '.txt'; PathRoot =  'C:';}
+$aTestDataCollection += New-TestPathObject 'C:\does\not\ex|st\readme.txt' @{ directoryname = ''; filename = ''; basename =  ''; extension =  ''; pathroot =  ''; isValid = $false; Exception = $false}
+$aTestDataCollection += New-TestPathObject 'C:\does\not\ex:st\readme.txt' @{ directoryname = 'C:\does\not\ex:st'; filename = 'readme.txt'; basename =  'readme'; extension =  '.txt'; pathroot =  'C:'; isValid = $false; Exception = $false}
+$aTestDataCollection += New-TestPathObject 'C:\does\not\ex*st\readme.txt' @{ directoryname = 'C:\does\not\ex*st'; filename = 'readme.txt'; basename =  'readme'; extension =  '.txt'; pathroot =  'C:'; isValid = $false; Exception = $false}
+$aTestDataCollection += New-TestPathObject 'C:\does\not\ex?st\readme.txt' @{ directoryname = 'C:\does\not\ex?st'; filename = 'readme.txt'; basename =  'readme'; extension =  '.txt'; pathroot =  'C:'; isValid = $false; Exception = $false}
 
-$aTestDataCollection += New-TestPathObject 'C:\does\not\exist\' @{ directoryname = 'C:\does\not\exist'; filename = ''; basename =  ''; extension =  ''; PathRoot =  'C:';}
-$aTestDataCollection += New-TestPathObject 'C:\' @{ directoryname = ''; filename = ''; basename =  ''; extension =  ''; PathRoot =  'C:';}
-$aTestDataCollection += New-TestPathObject 'C:' @{ directoryname = ''; filename = ''; basename =  ''; extension =  ''; PathRoot =  'C:';}
-$aTestDataCollection += New-TestPathObject 'C' @{ directoryname = ''; filename = 'C'; basename =  'C'; extension =  ''; PathRoot =  '';}
+$aTestDataCollection += New-TestPathObject 'C:\does\not\exist\' @{ directoryname = 'C:\does\not'; filename = 'exist'; basename =  'exist'; extension =  ''; pathroot =  'C:'; isValid = $true; Exception = $false}
+$aTestDataCollection += New-TestPathObject 'C:\' @{ directoryname = ''; filename = ''; basename =  ''; extension =  ''; pathroot =  'C:'; isValid = $false; Exception = $false}
+$aTestDataCollection += New-TestPathObject 'C:' @{ directoryname = ''; filename = ''; basename =  ''; extension =  ''; pathroot =  'C:'; isValid = $false; Exception = $false}
+$aTestDataCollection += New-TestPathObject 'C' @{ directoryname = ''; filename = 'C'; basename =  'C'; extension =  ''; pathroot =  ''; isValid = $false; Exception = $false}
 
-$aTestDataCollection += New-TestPathObject $null @{ directoryname = ''; filename = ''; basename =  ''; extension =  ''; PathRoot =  'C:';}
-$aTestDataCollection += New-TestPathObject ' ' @{ directoryname = ''; filename = ''; basename =  ''; extension =  ''; PathRoot =  'C:';}
+$aTestDataCollection += New-TestPathObject $null @{ directoryname = ''; filename = ''; basename =  ''; extension =  ''; pathroot =  'C:'; isValid = $false; Exception = $true}
+$aTestDataCollection += New-TestPathObject ' ' @{ directoryname = ''; filename = ''; basename =  ''; extension =  ''; pathroot =  'C:'; isValid = $false; Exception = $true}
+
+$aTestDataCollection += New-TestPathObject '.\does\not\exist.txt' @{ directoryname = '.\does\not'; filename = 'exist.txt'; basename =  'exist'; extension =  '.txt'; pathroot =  ''; isValid = $false; Exception = $false}
+$aTestDataCollection += New-TestPathObject '\does\not\exist.txt' @{ directoryname = '\does\not'; filename = 'exist.txt'; basename =  'exist'; extension =  '.txt'; pathroot =  ''; isValid = $false; Exception = $false}

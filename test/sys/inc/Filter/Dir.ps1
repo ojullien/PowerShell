@@ -1,8 +1,8 @@
 <#PSScriptInfo
 
-.VERSION 1.1.0
+.VERSION 1.2.0
 
-.GUID 8c6b4039-3915-45f5-90ad-1b9bc864dd20
+.GUID 969dc39f-0002-4e61-9cfd-8e8df7ebebf6
 
 .AUTHOR Olivier Jullien
 
@@ -26,46 +26,31 @@
 
 .RELEASENOTES
 Date: 20180501
-Powershell Version: 5.1
+Require Powershell Version: 6.0.2
+Require .NET Framework 4.7
+Require .NET Core
 
 #>
 
 <#
 
 .DESCRIPTION
- Common Path and filename data set
+ Dir data set
 
 #>
 
-Function New-TestDirObject( $path, $isvalid, $exists, $filter ) {
+Function New-TestPathObject( $path, $expected ) {
     New-Object -TypeName PsObject -Property @{
-        thePath = $path;
-        isValid = $isvalid;
-        exists = $exists;
-        doFilter = $filter }
+        theInput = $path
+        theExpected = $expected }
 }
 
 $aTestDataCollection = @()
 
-$aTestDataCollection += New-TestDirObject 'C:\Program Files\Windows"PowerShell' $false $false ""
-$aTestDataCollection += New-TestDirObject "C:\Program Files\Windows<PowerShell" $false $false ""
-$aTestDataCollection += New-TestDirObject "C:\Program Files\Windows>PowerShell" $false $false ""
-$aTestDataCollection += New-TestDirObject "C:\Program Files\Windows|PowerShell" $false $false ""
-$aTestDataCollection += New-TestDirObject "C:\Program Files\Windows:PowerShell" $false $false ""
-$aTestDataCollection += New-TestDirObject "C:\Program Files\Windows*PowerShell" $false $false ""
-$aTestDataCollection += New-TestDirObject "C:\Program Files\Windows?PowerShell" $false $false ""
+$aTestDataCollection += New-TestPathObject 'C:\does\not\exist' @{ isValid = $true; exists =  $false; doFilter = "C:\does\not"; Exception = $false }
+$aTestDataCollection += New-TestPathObject 'C:\Program Files\PowerShell\6.0.2' @{ isValid = $true; exists = $true; doFilter = "C:\Program Files\PowerShell"; Exception = $false }
+$aTestDataCollection += New-TestPathObject 'C:\Program Files\PowerShell\6.0.2\pwsh.exe' @{ isValid = $true; exists =  $false; doFilter = "C:\Program Files\PowerShell\6.0.2"; Exception = $false }
 
-$aTestDataCollection += New-TestDirObject "C:\Program Files\WindowsPowerShell\" $true $true "C:\Program Files"
-$aTestDataCollection += New-TestDirObject "C:\Program Files\WindowsPowerShell" $true $true "C:\Program Files"
-$aTestDataCollection += New-TestDirObject "C:\Program Files\" $true $true "C:\"
-$aTestDataCollection += New-TestDirObject "C:\Program Files" $true $true "C:\"
-$aTestDataCollection += New-TestDirObject "C:\Program Files\doesnotexist" $true $false "C:\Program Files"
-$aTestDataCollection += New-TestDirObject "C:\doesnotexist" $true $false "C:\"
-
-$aTestDataCollection += New-TestDirObject "C:\" $true $true ""
-$aTestDataCollection += New-TestDirObject "C:" $true $true "Exception"
-$aTestDataCollection += New-TestDirObject "C" $true $false ""
-
-$aTestDataCollection += New-TestDirObject $null "Exception" "Exception" "Exception"
-$aTestDataCollection += New-TestDirObject "" "Exception" "Exception" "Exception"
-$aTestDataCollection += New-TestDirObject " " "Exception" "Exception" "Exception"
+$aTestDataCollection += New-TestPathObject 'C:\Program Files\Power|Shell\6.0.2' @{ isValid = $false; exists = $false; doFilter = ""; Exception = $true }
+$aTestDataCollection += New-TestPathObject 'C:\Program Files\Power:Shell\6.0.2' @{ isValid = $false; exists = $false; doFilter = ""; Exception = $true }
+$aTestDataCollection += New-TestPathObject 'C:\' @{ isValid = $false; exists = $false; doFilter = ""; Exception = $true }

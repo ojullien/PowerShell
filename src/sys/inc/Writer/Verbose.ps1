@@ -35,7 +35,9 @@ Require .NET Core
 <#
 
 .DESCRIPTION
- Writer class for test
+ Writer class for test.
+ Writes a dot '.' for a successful test, an 'X' for a failed test and a 'E' when an unexpected exception is raised.
+ The verbose option writes the details.
 
 #>
 
@@ -44,8 +46,8 @@ class Verbose : Writer {
     # Properties
 
     hidden [bool] $m_bVerbose = $false
-    hidden [int] $m_iCount = 0
-    hidden [int] $m_iCountMax = 80
+    hidden [int] $m_iCount = 0     # Current position in the line
+    hidden [int] $m_iCountMax = 80 # Max '.' or 'X' and 'E' in a line
 
     # Constructors
 
@@ -66,6 +68,16 @@ class Verbose : Writer {
             $this.m_iCount = 0
         } else {
             ([Writer]$this).noticel( $cValue )
+        }
+
+    }
+
+    [void] exceptionExpected( [string] $sTxt ) {
+
+        if( $this.m_bVerbose ) {
+            ([Writer]$this).success( $sTxt )
+        } else {
+            $this.doVerbose( '.' )
         }
 
     }
