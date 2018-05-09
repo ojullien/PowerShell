@@ -1,8 +1,8 @@
 <#PSScriptInfo
 
-.VERSION 1.1.0
+.VERSION 1.2.0
 
-.GUID 8c6b4039-3915-45f5-90ad-1b9bc864dd2e
+.GUID 5a516eab-0001-4f39-82f9-f12d189bf98d
 
 .AUTHOR Olivier Jullien
 
@@ -26,7 +26,9 @@
 
 .RELEASENOTES
 Date: 20180501
-Powershell Version: 5.1
+Require Powershell Version: 6.0.2
+Require .NET Framework 4.7
+Require .NET Core
 
 #>
 
@@ -54,8 +56,9 @@ Set-StrictMode -Version Latest
 New-Variable -Name m_OPTION_WAIT -Force -Option Constant,AllScope -Value $( if( $waituser.IsPresent ) {1} else {0} )
 
 # -----------------------------------------------------------------------------
-#  Include sys files
+# Load sys\writer files
 # -----------------------------------------------------------------------------
+
 . ("$PWD\sys\cfg\constant.ps1")
 . ("$m_DIR_SYS\inc\Writer\Output\OutputAbstract.ps1")
 . ("$m_DIR_SYS\inc\Writer\Writer.ps1")
@@ -76,23 +79,47 @@ catch {
     Exit
 }
 
-. ("$m_DIR_SYS\inc\DriveInfo\Drive.ps1")
-. ("$m_DIR_SYS\inc\cprocess.ps1")
-. ("$m_DIR_SYS\inc\cvalidator.ps1")
+# -----------------------------------------------------------------------------
+# Load sys\Filter files
+# -----------------------------------------------------------------------------
+
+. ("$m_DIR_SYS\inc\Filter\FilterAbstract.ps1")
+. ("$m_DIR_SYS\inc\Filter\Path.ps1")
+. ("$m_DIR_SYS\inc\Filter\Dir.ps1")
+. ("$m_DIR_SYS\inc\Filter\File.ps1")
+
+# -----------------------------------------------------------------------------
+# Load sys\Executable files
+# -----------------------------------------------------------------------------
+
+. ("$m_DIR_SYS\inc\Executable\cprocess.ps1")
+
+# -----------------------------------------------------------------------------
+# Load sys\Drive files
+# -----------------------------------------------------------------------------
+
+. ("$m_DIR_SYS\inc\Drive\Drive.ps1")
+
+# -----------------------------------------------------------------------------
+# Load sys config
+# -----------------------------------------------------------------------------
+
 . ("$m_DIR_SYS\cfg\main.ps1")
 
 # -----------------------------------------------------------------------------
-#  Include app files
+# Load app files and config
 # -----------------------------------------------------------------------------
+
 $sCfgPath = "$m_DIR_APP\saveto\cfg\$cfg.cfg.ps1"
-if( ! $( Test-Path -LiteralPath $sCfgPath -PathType Leaf )) {
+if( ! [File]::new().exists( [Path]::new( $sCfgPath ))) {
     $pWriter.error( "$sCfgPath is missing! Aborting ..." )
     Exit
 } else {
     . ($sCfgPath)
 }
+
 . ("$m_DIR_APP\saveto\inc\SaveTo.ps1")
-. ("$m_DIR_APP\saveto\cfg\saveto.ps1")
+. ("$m_DIR_APP\saveto\cfg\SaveTo.ps1")
 
 # -----------------------------------------------------------------------------
 #  Save to
@@ -104,7 +131,7 @@ try {
     $pSaveTo = [SaveTo]::new( [string] $m_DIR_LOG ).setWriter( [Writer] $pWriter ).setSource( [Drive] $pSource ).setDestination( [Drive] $pDestination )
 }
 catch {
-    $pWriter.error( "Cannot load Writer: $_" )
+    $pWriter.error( "Cannot load SaveTo: $_" )
     Exit
 }
 

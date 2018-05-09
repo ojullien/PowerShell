@@ -1,6 +1,6 @@
 <#PSScriptInfo
 
-.VERSION 1.1.0
+.VERSION 1.2.0
 
 .GUID 323d3bb5-0004-4013-8e9e-142f6d540831
 
@@ -20,7 +20,7 @@
 
 .EXTERNALMODULEDEPENDENCIES
 
-.REQUIREDSCRIPTS sys\inc\Filter\FilterAbstract.ps1
+.REQUIREDSCRIPTS sys\inc\Filter\FilterAbstract.ps1, sys\inc\Filter\Path.ps1
 
 .RELEASENOTES
 Date: 20180501
@@ -45,9 +45,13 @@ class File : FilterAbstract {
 
     File() {}
 
+    File( [Path] $value ) {
+        $null = $this.doFilter( $value )
+    }
+
     # Methods
 
-    [bool] isValid( [string] $sPath ) {
+    [bool] isValid( [Path] $pPath ) {
     <#
     .SYNOPSIS
         Determines whether the syntax of the path is correct.
@@ -55,72 +59,64 @@ class File : FilterAbstract {
         See synopsis.
     .EXAMPLE
         isValid( 'path of the file' )
-    .PARAMETER sPath
-        The path to test.
+    .PARAMETER pPath
+        The path to test as an instance of \sys\Filter\Path object.
     #>
-        if( [string]::IsNullOrWhiteSpace( $sPath ) ) {
-            throw "Usage: [File]::isValid( <path as string> )"
+        if( $pPath -eq $null ) {
+            throw 'Usage: [File]$instance.isValid( <path as an instance of \sys\Filter\Path object> )'
+        }
+        return $pPath.isValid()
+    }
+
+    [bool] exists( [Path] $pPath ) {
+    <#
+    .SYNOPSIS
+        Determines whether all elements of a path exist.
+    .DESCRIPTION
+        See synopsis.
+    .EXAMPLE
+        exists( 'path of the file' )
+    .PARAMETER pPath
+        The path to test as an instance of \sys\Filter\Path object.
+    #>
+        # Initialize
+        [bool] $bReturn = $false
+
+        # Argument test
+        if( $pPath -eq $null ) {
+            throw 'Usage: [File]$instance.exists( <path as an instance of \sys\Filter\Path object> )'
         }
 
-        # Validate using Test-Path
-        $sPath = [string] $sPath.Trim().Trim( [system.io.path]::DirectorySeparatorChar )
-        $bReturn = $( Test-Path -LiteralPath $sPath -IsValid )
-
-        if( $bReturn ) {
-            # Perform extra-check on each path parts looking for ':'
-            $pathParts = $sPath.Split( [system.io.path]::DirectorySeparatorChar )
-            foreach( $sPart in $pathParts ) {
-                if( $( $sPart.Length -eq 2 ) -and $( $sPart[1] -eq ':' ) ){
-                    # Qualifier / drive
-                    continue
-                } elseif( $sPart.IndexOfAny( [System.IO.Path]::GetInvalidFileNameChars() ) -ne -1 ) {
-                    $bReturn = $false
-                    break
-                } else {
-                    continue
-                }
-            }
+        # Test
+        try {
+            $bReturn = $pPath.isValid() -and $( Test-Path -LiteralPath "$([string]$pPath)" -PathType Leaf )
+        }
+        catch {
+            $bReturn = $false
         }
 
         return $bReturn
     }
 
-    static [bool] existsFile( [string] $sPath ) {
+    [bool] exists( [Writer] $pWriter, [string] $sTxt, [Path] $pPath ) {
     <#
     .SYNOPSIS
-        Checks if a file exists.
-    .DESCRIPTION
-        See synopsis.
-    .EXAMPLE
-        [CValidator]::existsFile( 'path of the file' )
-    .PARAMETER sTxt
-        The path to test.
-    #>
-        if( [string]::IsNullOrWhiteSpace( $sPath ) ) {
-            throw "Usage: [CValidator]::existsFile <path as string>"
-        }
-        return $( Test-Path -LiteralPath $sPath -PathType Leaf )
-    }
-
-    static [bool] checkFile( [Writer] $pWriter, [string] $sTxt, [string] $sPath ) {
-    <#
-    .SYNOPSIS
-        Checks if a file exists.
+        Determines verbosely whether all elements of a path exist.
         If the file exits then writes a success type message and returns true.
         If the file does not exit then writes an error type message and returns false.
     .DESCRIPTION
         See synopsis.
     .EXAMPLE
-        [CValidator]::checkFile( <Instance of Writer>, 'Text to display', 'path of the file' )
+        exists( <Instance of Writer>, 'Text to display', 'path of the file' )
     .PARAMETER pWriter
-        An instance of writer.
+        An instance of writer class.
     .PARAMETER sTxt
         The text to write.
-    .PARAMETER sTxt
-        The path to test.
+    .PARAMETER pPath
+        The path to test as an instance of \sys\Filter\Path object.
     #>
         $pWriter.noticel( $sTxt )
-        if( [CValidator]::existsFile( $sPath ) ) {
+        if( $this.exists( $pPath )) {
             $pWriter.success( "exists" )
             $bReturn = $true
         } else {
@@ -129,4 +125,30 @@ class File : FilterAbstract {
         }
         return $bReturn
     }
+
+
+    [string] doFilter( [Path] $value ) {
+    <#
+    .SYNOPSIS
+        Returns Split-Path -parent $value
+    .DESCRIPTION
+        See synopsis.
+    .EXAMPLE
+        doFilter( value )
+    .PARAMETER value
+        The value to filter as an instance of \sys\Filter\Path object.
+    #>
+        if( $value -eq $null ) {
+            throw 'Usage: [File]$instance.doFilter( <path as an instance of \sys\Filter\Path object> )'
+        }
+
+        if( $value.isValid() ) {
+            $sReturn = [string] $( Split-Path -parent "$([string]$value)" )
+        } else {
+            $sReturn = ''
+        }
+        return $sReturn
+    }
+
 }
+

@@ -46,6 +46,7 @@ class Path : FilterAbstract {
     # Constructors
 
     Path() {
+        # Attention: directoryname may be empty but pathroot not like for 'c:\' path
         $this.info = @{directoryname = ""; filename = ""; basename = ""; extension = ""; pathroot = ""}
     }
 
@@ -56,26 +57,43 @@ class Path : FilterAbstract {
     # Methods
 
     [string] ToString() {
-        return $this.info.directoryname + [System.IO.Path]::DirectorySeparatorChar + $this.info.filename
+
+        [string] $sReturn = ""
+
+        # Add path root
+        if( $this.info.pathroot.Length -ne 0 ){
+            $sReturn = $this.info.pathroot + [System.IO.Path]::DirectorySeparatorChar
+        }
+
+        # Add directory name
+        $sReturn = $sReturn + $this.info.directoryname
+
+        # Add filename
+        if( ($this.info.filename.Length -ne 0) -and ($sReturn.Length -ne 0) -and ( !$sReturn.EndsWith( [System.IO.Path]::DirectorySeparatorChar ))){
+            $sReturn = $sReturn + [System.IO.Path]::DirectorySeparatorChar
+        }
+        $sReturn = $sReturn + $this.info.filename
+
+        return $sReturn
     }
 
-    [string] directoryname() {
+    [string] getDirectoryName() {
         return $this.info.directoryname
     }
 
-    [string] filename() {
+    [string] getFilename() {
         return $this.info.filename
     }
 
-    [string] basename() {
+    [string] getBasename() {
         return $this.info.basename
     }
 
-    [string] extension() {
+    [string] getExtension() {
         return $this.info.extension
     }
 
-    [string] pathroot() {
+    [string] getPathRoot() {
         return $this.info.pathroot
     }
 
@@ -88,27 +106,22 @@ class Path : FilterAbstract {
         See synopsis.
     .EXAMPLE
         isValid()
-    .PARAMETER sPath
-        The path to test as string.
     #>
+        # Always looking for X:\ path pattern
+        [bool] $bReturn = ( ( $this.info.pathroot.Length -ne 0 ) -and ( $this.info.pathroot -match '^[a-zA-Z]:$' ) )
+
+        # Validate filename
+        $bReturn = $bReturn -and ( $this.info.filename.IndexOfAny( [System.IO.Path]::GetInvalidFileNameChars() ) -eq -1 )
 
         # Validate using Test-Path
-        $sPath = $this.ToString()
-        [bool] $bReturn = $( Test-Path -LiteralPath "$sPath" -IsValid )
+        $bReturn = $bReturn  -and ( Test-Path -LiteralPath "$( [string]$this )" -IsValid )
 
-        # Removes path root from directory name
-        if( $bReturn -and ( $sPath.length -gt 3 ) -and ( $sPath[1] -eq ':' ) -and ( $sPath[2] -eq [System.IO.Path]::DirectorySeparatorChar )) {
-            $sPath = $sPath.substring(3)
-        } else {
-            $bReturn = $false
-        }
-
+        # Validate directory name
         if( $bReturn ) {
-
             # Perform extra-check on each path parts looking for ':'.
             # None of .NET or Test-Path functions raise an error if a directory's
             # name contains a ':'.
-            $pathParts = $sPath.Split( [System.IO.Path]::DirectorySeparatorChar )
+            $pathParts = $this.info.directoryname.Split( [System.IO.Path]::DirectorySeparatorChar )
             foreach( $sPart in $pathParts ) {
                 if( $sPart.IndexOfAny( [System.IO.Path]::GetInvalidFileNameChars() ) -ne -1 ) {
                     $bReturn = $false
@@ -149,11 +162,11 @@ class Path : FilterAbstract {
         The value to filter.
     #>
         # Initialize
-        $this.info = @{directoryname = ""; filename = ""; basename = ""; extension = ""; PathRoot = ""}
+        $this.info = @{directoryname = ""; filename = ""; basename = ""; extension = ""; pathroot = ""}
 
         # Argument test
         if( [string]::IsNullOrWhiteSpace( $value ) ) {
-            throw "Usage: [Path]::doFilter( <path as string> )"
+            throw 'Usage: [Path]$instance.doFilter( <path as string> )'
         }
 
         # Filter
@@ -164,10 +177,15 @@ class Path : FilterAbstract {
                 filename = [string][System.IO.Path]::GetFileName( "$value" )
                 basename = [string][System.IO.Path]::GetFileNameWithoutExtension( "$value" )
                 extension = [string][System.IO.Path]::GetExtension( "$value" )
-                PathRoot = $( [string][System.IO.Path]::GetPathRoot( "$value" ) ).TrimEnd( [System.IO.Path]::DirectorySeparatorChar ) }
+                pathroot = $( [string][System.IO.Path]::GetPathRoot( "$value" ) ).TrimEnd( [System.IO.Path]::DirectorySeparatorChar ) }
         }
         catch {
-            $this.info = @{directoryname = ""; filename = ""; basename = ""; extension = ""; PathRoot = ""}
+            $this.info = @{directoryname = ""; filename = ""; basename = ""; extension = ""; pathroot = ""}
+        }
+
+        # Remove path root to directory name
+        if( ( $this.info.pathroot.length -ne 0 ) -and ( $this.info.directoryname.StartsWith( "$($this.info.pathroot)"))) {
+            $this.info.directoryname = $this.info.directoryname.Remove( 0, $this.info.pathroot.length ).TrimStart( [System.IO.Path]::DirectorySeparatorChar )
         }
 
         return $this.info

@@ -33,7 +33,7 @@ Require .NET Core
 <#
 
 .DESCRIPTION
- Path filter class
+ Dir filter class
 
 #>
 
@@ -52,21 +52,21 @@ class Dir : FilterAbstract {
     # Methods
 
     [bool] isValid( [Path] $pPath ) {
-        <#
-        .SYNOPSIS
-            Determines whether the syntax of the path is correct.
-        .DESCRIPTION
-            See synopsis.
-        .EXAMPLE
-            isValid( 'path of the folder' )
-        .PARAMETER sPath
-            The path to test as an instance of \sys\Filter\Path object.
-        #>
-            if( $pPath -eq $null ) {
-                throw "Usage: [Dir]::isValid( <path as an instance of \sys\Filter\Path object> )"
-            }
-            return $pPath.isValid()
+    <#
+    .SYNOPSIS
+        Determines whether the syntax of the path is correct.
+    .DESCRIPTION
+        See synopsis.
+    .EXAMPLE
+        isValid( 'path of the folder' )
+    .PARAMETER pPath
+        The path to test as an instance of \sys\Filter\Path object.
+    #>
+        if( $pPath -eq $null ) {
+            throw 'Usage: [Dir]$instance.isValid( <path as an instance of \sys\Filter\Path object> )'
         }
+        return $pPath.isValid()
+    }
 
     [bool] exists( [Path] $pPath ) {
     <#
@@ -84,7 +84,7 @@ class Dir : FilterAbstract {
 
         # Argument test
         if( $pPath -eq $null ) {
-            throw "Usage: [Dir]::exists( <path as an instance of \sys\Filter\Path object> )"
+            throw 'Usage: [Dir]$instance.exists( <path as an instance of \sys\Filter\Path object> )'
         }
 
         # Test
@@ -138,7 +138,7 @@ class Dir : FilterAbstract {
         The value to filter as an instance of \sys\Filter\Path object.
     #>
         if( $value -eq $null ) {
-            throw "Usage: [Dir]::doFilter( <path as an instance of \sys\Filter\Path object> )"
+            throw 'Usage: [Dir]$instance.doFilter( <path as an instance of \sys\Filter\Path object> )'
         }
 
         if( $value.isValid() ) {

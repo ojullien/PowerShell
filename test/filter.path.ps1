@@ -116,36 +116,36 @@ foreach( $item in $aTestDataCollection ) {
         continue
     }
 
-    $sBuffer = "`tdirectoryname: '$( $pPath.directoryname() )' => '$( $item.theExpected.directoryname )'"
-    if( $pPath.directoryname() -eq $item.theExpected.directoryname ) {
+    $sBuffer = "`tdirectoryname: '$( $pPath.getDirectoryName() )' => '$( $item.theExpected.directoryname )'"
+    if( $pPath.getDirectoryName() -eq $item.theExpected.directoryname ) {
         $pWriter.success( $sBuffer )
     } else {
         $pWriter.error( $sBuffer )
     }
 
-    $sBuffer = "`tfilename: '$( $pPath.filename() )' => '$( $item.theExpected.filename )'"
-    if( $pPath.filename() -eq $item.theExpected.filename ) {
+    $sBuffer = "`tfilename: '$( $pPath.getFilename() )' => '$( $item.theExpected.filename )'"
+    if( $pPath.getFilename() -eq $item.theExpected.filename ) {
         $pWriter.success( $sBuffer )
     } else {
         $pWriter.error( $sBuffer )
     }
 
-    $sBuffer = "`tbasename: '$( $pPath.basename() )' => '$( $item.theExpected.basename )'"
-    if( $pPath.basename() -eq $item.theExpected.basename ) {
+    $sBuffer = "`tbasename: '$( $pPath.getBasename() )' => '$( $item.theExpected.basename )'"
+    if( $pPath.getBasename() -eq $item.theExpected.basename ) {
         $pWriter.success( $sBuffer )
     } else {
         $pWriter.error( $sBuffer )
     }
 
-    $sBuffer = "`textension: '$( $pPath.extension() )' => '$( $item.theExpected.extension )'"
-    if( $pPath.extension() -eq $item.theExpected.extension ) {
+    $sBuffer = "`textension: '$( $pPath.getExtension() )' => '$( $item.theExpected.extension )'"
+    if( $pPath.getExtension() -eq $item.theExpected.extension ) {
         $pWriter.success( $sBuffer )
     } else {
         $pWriter.error( $sBuffer )
     }
 
-    $sBuffer = "`tpathroot: '$( $pPath.pathroot() )' => '$( $item.theExpected.pathroot )'"
-    if( $pPath.pathroot() -eq $item.theExpected.pathroot ) {
+    $sBuffer = "`tpathroot: '$( $pPath.getPathRoot() )' => '$( $item.theExpected.pathroot )'"
+    if( $pPath.getPathRoot() -eq $item.theExpected.pathroot ) {
         $pWriter.success( $sBuffer )
     } else {
         $pWriter.error( $sBuffer )

@@ -1,6 +1,6 @@
 <#PSScriptInfo
 
-.VERSION 1.0.0
+.VERSION 1.2.0
 
 .GUID 90c70f14-f1cf-4c22-9175-fe79514a477d
 
@@ -20,13 +20,15 @@
 
 .EXTERNALMODULEDEPENDENCIES
 
-.REQUIREDSCRIPTS sys\inc\string.ps1, sys\inc\filesystem.ps1
+.REQUIREDSCRIPTS sys\inc\Writer, sys\inc\Filter
 
 .EXTERNALSCRIPTDEPENDENCIES
 
 .RELEASENOTES
-Date: 20180409
-Powershell Version: 5.1
+Date: 20180501
+Require Powershell Version: 6.0.2
+Require .NET Framework 4.7
+Require .NET Core
 
 #>
 
@@ -46,8 +48,15 @@ $pWriter.notice( "`t$pWriter" )
 
 $pWriter.separateLine()
 $pWriter.notice( "Main configuration" )
-[CValidator]::checkDir( [Writer] $pWriter, "`tScript directory: $m_DIR_SCRIPT ", $m_DIR_SCRIPT ) > $null
-[CValidator]::checkDir( [Writer] $pWriter, "`tSystem directory: $m_DIR_SYS ", $m_DIR_SYS ) > $null
-[CValidator]::checkDir( [Writer] $pWriter, "`tApp directory: $m_DIR_APP ", $m_DIR_APP ) > $null
-[CValidator]::checkDir( [Writer] $pWriter, "`tLog directory: $m_DIR_LOG ", $m_DIR_LOG ) > $null
-[CValidator]::checkFile( [Writer] $pWriter, "`tLog file is: $m_DIR_LOG_PATH ", $m_DIR_LOG_PATH ) > $null
+
+[Dir]::new().exists( $pWriter, "`tScript directory: $m_DIR_SCRIPT ", [Path]::new($m_DIR_SCRIPT) ) > $null
+[Dir]::new().exists( $pWriter, "`tSystem directory: $m_DIR_SYS ", [Path]::new($m_DIR_SYS) ) > $null
+[Dir]::new().exists( $pWriter, "`tApp directory: $m_DIR_APP ", [Path]::new($m_DIR_APP) ) > $null
+[Dir]::new().exists( $pWriter, "`tLog directory: $m_DIR_LOG ", [Path]::new($m_DIR_LOG) ) > $null
+[File]::new().exists( $pWriter, "`tLog file: $m_DIR_LOG_PATH ", [Path]::new($m_DIR_LOG_PATH) ) > $null
+
+#[CValidator]::checkDir( [Writer] $pWriter, "`tScript directory: $m_DIR_SCRIPT ", $m_DIR_SCRIPT ) > $null
+#[CValidator]::checkDir( [Writer] $pWriter, "`tSystem directory: $m_DIR_SYS ", $m_DIR_SYS ) > $null
+#[CValidator]::checkDir( [Writer] $pWriter, "`tApp directory: $m_DIR_APP ", $m_DIR_APP ) > $null
+#[CValidator]::checkDir( [Writer] $pWriter, "`tLog directory: $m_DIR_LOG ", $m_DIR_LOG ) > $null
+#[CValidator]::checkFile( [Writer] $pWriter, "`tLog file is: $m_DIR_LOG_PATH ", $m_DIR_LOG_PATH ) > $null

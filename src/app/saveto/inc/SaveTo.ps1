@@ -1,8 +1,8 @@
 <#PSScriptInfo
 
-.VERSION 1.1.0
+.VERSION 1.2.0
 
-.GUID 12bcc70f-27b5-4663-9551-3012a78db9a8
+.GUID 5a516eab-0002-4f39-82f9-f12d189bf98d
 
 .AUTHOR Olivier Jullien
 
@@ -26,7 +26,9 @@
 
 .RELEASENOTES
 Date: 20180501
-Powershell Version: 5.1
+Require Powershell Version: 6.0.2
+Require .NET Framework 4.7
+Require .NET Core
 
 #>
 
@@ -65,7 +67,7 @@ class SaveTo {
         if( [string]::IsNullOrWhiteSpace( $sPath )) {
             throw "Usage: [SaveTo]::new( <log path as string> )"
         }
-        if( -Not $( Test-Path -LiteralPath $sPath -PathType Container )) {
+        if( -Not [Dir]::new().exists( [Path]::new( $sPath ) )) {
             throw "The log path must be valid"
         }
         $this.m_sLogPath = $sPath.Trim()
@@ -131,6 +133,11 @@ class SaveTo {
     .EXAMPLE
         $pSaveTo.cleanLog()
     #>
+        # Log dir must exist
+        if( -Not [Dir]::new().exists( [Path]::new( $this.m_sLogPath ) )) {
+            throw "The log path must be valid"
+        }
+        # Delete
         foreach( $sName in @( $this.m_sRobocopyLogName, $this.m_sContigerLogName )) {
             $this.m_pWriter.notice( "Cleaning '$sName-*.log' files from $($this.m_sLogPath)" )
             Remove-Item "$($this.m_sLogPath)\$sName-*.log"

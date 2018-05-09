@@ -2,7 +2,7 @@
 
 .VERSION 1.2.0
 
-.GUID 969dc39f-0001-4e61-9cfd-8e8df7ebebf6
+.GUID 51600348-0001-4a99-a11e-cc2920fcefb0
 
 .AUTHOR Olivier Jullien
 
@@ -20,7 +20,7 @@
 
 .EXTERNALMODULEDEPENDENCIES
 
-.REQUIREDSCRIPTS src\sys\inc\Writer, src\sys\inc\Filter\Path.ps1, src\sys\inc\Filter\Dir.ps1, test\sys\inc\Filter\Dir.ps1
+.REQUIREDSCRIPTS src\sys\inc\Writer, src\sys\inc\Filter\Path.ps1, src\sys\inc\Filter\File.ps1, test\sys\inc\Filter\File.ps1
 
 .EXTERNALSCRIPTDEPENDENCIES
 
@@ -35,7 +35,7 @@ Require .NET Core
 <#
 
 .DESCRIPTION
- Filter\Dir tests
+ Filter\File tests
 
 #>
 
@@ -74,19 +74,18 @@ catch {
 }
 
 # -----------------------------------------------------------------------------
-# Load Filter\Path, Filter\Dir and Drive\Drive files
+# Load Filter\Path and Filter\File files
 # -----------------------------------------------------------------------------
 
 . ("$m_DIR_SYS\inc\Filter\FilterAbstract.ps1")
 . ("$m_DIR_SYS\inc\Filter\Path.ps1")
-. ("$m_DIR_SYS\inc\Filter\Dir.ps1")
-. ("$m_DIR_SYS\inc\Drive\Drive.ps1")
+. ("$m_DIR_SYS\inc\Filter\File.ps1")
 
 try {
-    $pDir = [Dir]::new()
+    $pDir = [File]::new()
 }
 catch {
-    $pWriter.error( "ERROR: Cannot load Filter\Dir module: $_" )
+    $pWriter.error( "ERROR: Cannot load Filter\File module: $_" )
     Exit
 }
 
@@ -94,7 +93,7 @@ catch {
 # Load data test
 # -----------------------------------------------------------------------------
 
-. ("$m_DIR_SCRIPT\test\sys\inc\Filter\Dir.ps1")
+. ("$m_DIR_SCRIPT\test\sys\inc\Filter\File.ps1")
 
 # ------------------------------------------------------------------------------
 # Test

@@ -1,8 +1,8 @@
 <#PSScriptInfo
 
-.VERSION 1.0.0
+.VERSION 1.2.0
 
-.GUID c903f328-a3bd-4473-82d3-61ee784e41c9
+.GUID 5a516eab-0007-4f39-82f9-f12d189bf98d
 
 .AUTHOR Olivier Jullien
 
@@ -25,8 +25,10 @@
 .EXTERNALSCRIPTDEPENDENCIES
 
 .RELEASENOTES
-Date: 20180409
-Powershell Version: 5.1
+Date: 20180501
+Require Powershell Version: 6.0.2
+Require .NET Framework 4.7
+Require .NET Core
 
 #>
 
@@ -60,8 +62,7 @@ if( $pDestination.testPath() -and $pDestination.isReady() ) {
 $pWriter.noticel( "`tList directories: " )
 foreach( $sDir in $aLISTDIR) {
     $pWriter.noticel( "$sDir " )
-    $sPath = $pSource.getDriveLetter() + "\" + $pSource.getSubFolder() + "\" + $sDir
-    if( ! $( Test-Path -LiteralPath $sPath -PathType Container )) {
+    if( ! [Dir]::new().exists( [Path]::new( $pSource.getDriveLetter() + [System.IO.Path]::DirectorySeparatorChar + $pSource.getSubFolder() + [System.IO.Path]::DirectorySeparatorChar + $sDir ) )) {
         $pWriter.noticel( "(!is missing) " )
     }
 }

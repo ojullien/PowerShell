@@ -1,8 +1,8 @@
 <#PSScriptInfo
 
-.VERSION 1.0.0
+.VERSION 1.2.0
 
-.GUID 519bda70-b405-4bab-8f15-de6ce8e74deb
+.GUID 5a516eab-0003-4f39-82f9-f12d189bf98d
 
 .AUTHOR Olivier Jullien
 
@@ -20,13 +20,15 @@
 
 .EXTERNALMODULEDEPENDENCIES
 
-.REQUIREDSCRIPTS sys
+.REQUIREDSCRIPTS sys\inc\Filter, sys\inc\Drive
 
 .EXTERNALSCRIPTDEPENDENCIES
 
 .RELEASENOTES
-Date: 20180409
-Powershell Version: 5.1
+Date: 20180501
+Require Powershell Version: 6.0.2
+Require .NET Framework 4.7
+Require .NET Core
 
 #>
 
@@ -37,6 +39,6 @@ Powershell Version: 5.1
 
 #>
 
-[Drive] $pSource = [Drive]::new().setDriveLetter("C:").setVolumeLabel("OS")
-[Drive] $pDestination = [Drive]::new().setDriveLetter("C:").setSubFolder('Temp').setVolumeLabel("OS")
+[Drive] $pSource = [Drive]::new( [Path]::new("C:") ).setVolumeLabel( "OS" )
+[Drive] $pDestination = [Drive]::new( [Path]::new("C:\Temp") ).setVolumeLabel("OS")
 [string[]] $aLISTDIR = "dir1", "dir2"

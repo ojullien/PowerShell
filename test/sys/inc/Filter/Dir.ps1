@@ -39,7 +39,7 @@ Require .NET Core
 
 #>
 
-Function New-TestPathObject( $path, $expected ) {
+Function New-TestFilterDirObject( $path, $expected ) {
     New-Object -TypeName PsObject -Property @{
         theInput = $path
         theExpected = $expected }
@@ -47,10 +47,10 @@ Function New-TestPathObject( $path, $expected ) {
 
 $aTestDataCollection = @()
 
-$aTestDataCollection += New-TestPathObject 'C:\does\not\exist' @{ isValid = $true; exists =  $false; doFilter = "C:\does\not"; Exception = $false }
-$aTestDataCollection += New-TestPathObject 'C:\Program Files\PowerShell\6.0.2' @{ isValid = $true; exists = $true; doFilter = "C:\Program Files\PowerShell"; Exception = $false }
-$aTestDataCollection += New-TestPathObject 'C:\Program Files\PowerShell\6.0.2\pwsh.exe' @{ isValid = $true; exists =  $false; doFilter = "C:\Program Files\PowerShell\6.0.2"; Exception = $false }
+$aTestDataCollection += New-TestFilterDirObject 'C:\does\not\exist' @{ isValid = $true; exists =  $false; doFilter = "C:\does\not"; Exception = $false }
+$aTestDataCollection += New-TestFilterDirObject 'C:\Program Files\PowerShell\6.0.2' @{ isValid = $true; exists = $true; doFilter = "C:\Program Files\PowerShell"; Exception = $false }
+$aTestDataCollection += New-TestFilterDirObject 'C:\Program Files\PowerShell\6.0.2\pwsh.exe' @{ isValid = $true; exists =  $false; doFilter = "C:\Program Files\PowerShell\6.0.2"; Exception = $false }
 
-$aTestDataCollection += New-TestPathObject 'C:\Program Files\Power|Shell\6.0.2' @{ isValid = $false; exists = $false; doFilter = ""; Exception = $true }
-$aTestDataCollection += New-TestPathObject 'C:\Program Files\Power:Shell\6.0.2' @{ isValid = $false; exists = $false; doFilter = ""; Exception = $true }
-$aTestDataCollection += New-TestPathObject 'C:\' @{ isValid = $false; exists = $false; doFilter = ""; Exception = $true }
+$aTestDataCollection += New-TestFilterDirObject 'C:\Program Files\Power|Shell\6.0.2' @{ isValid = $false; exists = $false; doFilter = ""; Exception = $true }
+$aTestDataCollection += New-TestFilterDirObject 'C:\Program Files\Power:Shell\6.0.2' @{ isValid = $false; exists = $false; doFilter = ""; Exception = $true }
+$aTestDataCollection += New-TestFilterDirObject 'C:\' @{ isValid = $true; exists = $true; doFilter = ""; Exception = $false }
