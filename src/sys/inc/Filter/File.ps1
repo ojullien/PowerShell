@@ -60,10 +60,10 @@ class File : FilterAbstract {
     .EXAMPLE
         isValid( 'path of the file' )
     .PARAMETER pPath
-        The path to test as an instance of \sys\Filter\Path object.
+        The path to test as an instance of Filter\Path object.
     #>
         if( $pPath -eq $null ) {
-            throw 'Usage: [File]$instance.isValid( <path as an instance of \sys\Filter\Path object> )'
+            throw 'Usage: [File]$instance.isValid( <path as Filter\Path instance> )'
         }
         return $pPath.isValid()
     }
@@ -77,14 +77,14 @@ class File : FilterAbstract {
     .EXAMPLE
         exists( 'path of the file' )
     .PARAMETER pPath
-        The path to test as an instance of \sys\Filter\Path object.
+        The path to test as an instance of Filter\Path object.
     #>
         # Initialize
         [bool] $bReturn = $false
 
         # Argument test
         if( $pPath -eq $null ) {
-            throw 'Usage: [File]$instance.exists( <path as an instance of \sys\Filter\Path object> )'
+            throw 'Usage: [File]$instance.exists( <path as Filter\Path instance> )'
         }
 
         # Test
@@ -113,7 +113,7 @@ class File : FilterAbstract {
     .PARAMETER sTxt
         The text to write.
     .PARAMETER pPath
-        The path to test as an instance of \sys\Filter\Path object.
+        The path to test as an instance of Filter\Path object.
     #>
         $pWriter.noticel( $sTxt )
         if( $this.exists( $pPath )) {
@@ -136,10 +136,10 @@ class File : FilterAbstract {
     .EXAMPLE
         doFilter( value )
     .PARAMETER value
-        The value to filter as an instance of \sys\Filter\Path object.
+        The value to filter as an instance of Filter\Path object.
     #>
         if( $value -eq $null ) {
-            throw 'Usage: [File]$instance.doFilter( <path as an instance of \sys\Filter\Path object> )'
+            throw 'Usage: [File]$instance.doFilter( <path as Filter\Path instance> )'
         }
 
         if( $value.isValid() ) {

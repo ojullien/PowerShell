@@ -86,7 +86,7 @@ class Drive {
 
     [Drive] setVolumeLabel( [string] $value ) {
         if( [string]::IsNullOrWhiteSpace( $value ) ) {
-            throw 'Usage: [Drive]$object.setVolumeLabel( <volume label> )'
+            throw 'Usage: [Drive]$object.setVolumeLabel( <volume label as string> )'
         }
         $this.m_sVolumeLabel = $value.Trim()
         return $this

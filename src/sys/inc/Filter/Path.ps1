@@ -41,6 +41,7 @@ class Path : FilterAbstract {
 
     # Properties
 
+    [ValidateNotNull()]
     [hashtable] $info
 
     # Constructors
