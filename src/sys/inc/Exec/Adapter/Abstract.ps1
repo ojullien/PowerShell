@@ -20,7 +20,7 @@
 
 .EXTERNALMODULEDEPENDENCIES
 
-.REQUIREDSCRIPTS sys\inc\Exec\Program.ps1, sys\inc\Exec\Program.ps1
+.REQUIREDSCRIPTS sys\inc\Exec\Program.ps1
 
 .EXTERNALSCRIPTDEPENDENCIES
 
@@ -104,7 +104,7 @@ class ExecAdapterAbstract {
     .EXAMPLE
         $instance.getOutput()
     #>
-        return $this.m_sOutput.Trim()
+        return $this.m_sOutput
     }
 
     [string[]] getSplitedOutput() {
@@ -116,7 +116,6 @@ class ExecAdapterAbstract {
     .EXAMPLE
         $instance.getOutput()
     #>
-        $this.m_sOutput = $this.m_sOutput.Trim()
         $this.m_sOutput = $this.m_sOutput -replace "\r\n$", ""
         if ( $this.m_sOutput.Contains( "`r`n" ) ) {
             $this.m_sOutput = $this.m_sOutput -split "`r`n"

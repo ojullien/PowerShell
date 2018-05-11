@@ -73,7 +73,8 @@ class CallOperator : ExecAdapterAbstract {
 
         # Run
         if( $this.m_bSaveOutput ) {
-            $this.m_sOutput = & $this.m_pProgram.getProgramPath() $this.m_pProgram.getArguments()
+            [string] $sBuffer = & $this.m_pProgram.getProgramPath() $this.m_pProgram.getArguments()
+            $this.m_sOutput = $sBuffer.Trim()
         } else {
             $null = & $this.m_pProgram.getProgramPath() $this.m_pProgram.getArguments()
         }

@@ -6,7 +6,7 @@
 
 .AUTHOR Olivier Jullien
 
-.COMPANYNAME 99385c3a-0001-4193-a2e5-c9bf26e3ad98
+.COMPANYNAME
 
 .COPYRIGHT MIT License
 

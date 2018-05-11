@@ -51,6 +51,8 @@ class SystemDiagnosticsProcess : ExecAdapterAbstract {
     SystemDiagnosticsProcess() {
         $this.m_bUseShellExecute = $false
         $this.m_bRedirectStandardOutput = $true
+        $this.m_bSaveOutput = $false
+        $this.m_sOutput = ''
     }
 
     # Class methods
@@ -74,7 +76,7 @@ class SystemDiagnosticsProcess : ExecAdapterAbstract {
             throw 'Program is not set.'
         }
 
-        #
+        # Run
         $pProcess = New-Object System.Diagnostics.Process
         $pProcess.StartInfo.FileName = $this.m_pProgram.getProgramPath()
         $pProcess.StartInfo.Arguments = $this.m_pProgram.getArguments()
@@ -84,15 +86,8 @@ class SystemDiagnosticsProcess : ExecAdapterAbstract {
         if( $pProcess.Start() ) {
             # Read output. To avoid deadlocks, always read the output stream first and then wait.
             if( $this.m_bSaveOutput -and $this.m_bRedirectStandardOutput -and !$this.m_bUseShellExecute ) {
-                $this.m_sOutput = $pProcess.StandardOutput.ReadToEnd()
-#            $this.m_sOutput = $pProcess.StandardOutput.ReadToEnd() -replace "\r\n$",""
-#            if ( $this.m_sOutput ) {
-#                if( $this.m_sOutput.Contains("`r`n") ) {
-#                    $this.m_sOutput = $this.m_sOutput -split "`r`n"
-#                } elseif( $this.m_sOutput.Contains("`n") ) {
-#                    $this.m_sOutput = $this.m_sOutput -split "`n"
-#                }
-#            }
+                [string] $sBuffer = $pProcess.StandardOutput.ReadToEnd()
+                $this.m_sOutput = $sBuffer.Trim()
             }
         }
 

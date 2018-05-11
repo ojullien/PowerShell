@@ -43,8 +43,6 @@ class StartProcess : ExecAdapterAbstract {
 
     # Properties
 
-
-
     # Constructors
 
     StartProcess() {
@@ -65,37 +63,64 @@ class StartProcess : ExecAdapterAbstract {
     .EXAMPLE
         $instance.run()
     #>
+        # Initialize
+		[string] $stdOutTempFile = "$env:TEMP\$((New-Guid).Guid)"
+        [string] $stdErrTempFile = "$env:TEMP\$((New-Guid).Guid)"
+        [int]$iReturn = -1000
+        $this.m_sOutput = ''
+
+
+        # Argument test
         if( $this.m_pProgram -eq $null ) {
             throw 'Program is not set.'
         }
 
-        $this.m_sOutput = ''
-        $OFS = " "
-
-        $pProcess = New-Object System.Diagnostics.Process
-        $pProcess.StartInfo.FileName = $this.m_pProgram.getProgramPath()
-        $pProcess.StartInfo.Arguments = $this.m_pProgram.getArguments()
-        $pProcess.StartInfo.UseShellExecute = $this.m_bUseShellExecute
-        $pProcess.StartInfo.RedirectStandardOutput = $this.m_bRedirectStandardOutput
-
-        if( $pProcess.Start() ) {
-            # Read output. To avoid deadlocks, always read the output stream first and then wait.
-            if( $this.m_bSaveOutput -and $this.m_bRedirectStandardOutput -and !$this.m_bUseShellExecute ) {
-                $this.m_sOutput = $pProcess.StandardOutput.ReadToEnd()
-#            $this.m_sOutput = $pProcess.StandardOutput.ReadToEnd() -replace "\r\n$",""
-#            if ( $this.m_sOutput ) {
-#                if( $this.m_sOutput.Contains("`r`n") ) {
-#                    $this.m_sOutput = $this.m_sOutput -split "`r`n"
-#                } elseif( $this.m_sOutput.Contains("`n") ) {
-#                    $this.m_sOutput = $this.m_sOutput -split "`n"
-#                }
-#            }
-            }
+<#
+		[hashtable] $aStartProcessParams = @{
+			FilePath               = $this.m_pProgram.getProgramPath()
+			ArgumentList           = $this.m_pProgram.getArguments()
+			RedirectStandardError  = $stdErrTempFile
+			RedirectStandardOutput = $stdOutTempFile
+			Wait                   = $true;
+			PassThru               = $true;
+			NoNewWindow            = $true;
         }
+#>
 
-        $pProcess.WaitForExit()
-        [int]$iReturn = $pProcess.ExitCode
-        $pProcess.Close();
+        try {
+            #$pProcess = Start-Process $aStartProcessParams
+            $pProcess = Start-Process $this.m_pProgram.getProgramPath() -ArgumentList $this.m_pProgram.getArguments() -wait -NoNewWindow -PassThru -RedirectStandardOutput $stdErrTempFile -RedirectStandardError $stdOutTempFile
+            $pProcess.HasExited
+            $iReturn = $pProcess.ExitCode
+
+            if( $this.m_bSaveOutput ) {
+                [string] $sBufferOut = Get-Content -Path $stdOutTempFile -Raw
+                if( $iReturn -ne 0 ){
+                    [string] $sBufferErr = Get-Content -Path $stdErrTempFile -Raw
+                    if( $sBufferErr ) {
+                        $sBufferOut = $sBufferErr
+                    }
+                }
+                if ([string]::IsNullOrEmpty( $sBufferOut ) -eq $false) {
+                    $this.m_sOutput = $sBufferOut.Trim()
+                }
+            }
+
+        } catch {
+            # Bug Unable to load DLL 'api-ms-win-core-job-l2-1-0.dll'.
+            # We read the output anyway
+            #throw $_
+            [string] $sBufferOut = Get-Content -Path $stdOutTempFile -Raw
+            [string] $sBufferErr = Get-Content -Path $stdErrTempFile -Raw
+            if( $sBufferErr ) {
+                $sBufferOut = $sBufferErr
+            }
+            if ([string]::IsNullOrEmpty( $sBufferOut ) -eq $false) {
+                $this.m_sOutput = $sBufferOut.Trim()
+            }
+        } finally {
+            Remove-Item -Path $stdOutTempFile, $stdErrTempFile -Force -ErrorAction Ignore
+        }
 
         return $iReturn
     }
