@@ -2,7 +2,7 @@
 
 .VERSION 1.2.0
 
-.GUID cb98663e-0002-4ceb-92ad-36e9f1eaf33b
+.GUID f2d20462-0001-421e-864b-42cddfa2b4e3
 
 .AUTHOR Olivier Jullien
 
@@ -94,73 +94,54 @@ catch {
 # Load data test
 # -----------------------------------------------------------------------------
 
-[string]$sProgramPath =  'C:\Program Files\SysinternalsSuite\hex2dec.exe'
-[string[]]$aProgramArgCollection = @( '-nobanner' )
+. ("$m_DIR_SCRIPT\test\sys\inc\Exec\Adapter\SystemDiagnosticsProcess.ps1")
 
 # ------------------------------------------------------------------------------
-# Test 01
+# Test
 # ------------------------------------------------------------------------------
 
-$pWriter.separateLine()
-$pWriter.notice( "Testing: $sProgramPath $( $aProgramArgCollection -join ' ' )" )
+foreach( $item in $aTestDataCollection ) {
 
-try {
-    [Path] $pPath = [path]::new( $sProgramPath )
-    [Program] $pProgram = [Program]::new().setProgramPath( $pPath ).setArgument( $aProgramArgCollection )
-    [CallOperator] $pProcess = [CallOperator]::new()
-    $null = $pProcess.setProgram( $pProgram )
-} catch {
-    $pWriter.exception( "Exception raised when creating Filter\Path, Exec\Program or Exec\CallOperator:  $_" )
-    Exit
+    $pWriter.separateLine()
+    $pWriter.notice( "Testing: '$( $item.theInput.theProgram )' $( $item.theInput.theArgs -join ' ' )" )
+
+    try {
+        [Path] $pPath = [path]::new( $item.theInput.theProgram )
+        [Program] $pProgram = [Program]::new().setProgramPath( $pPath ).setArgument( $item.theInput.theArgs )
+        [CallOperator] $pProcess = [CallOperator]::new()
+        $null = $pProcess.setProgram( $pProgram )
+    } catch {
+        $pWriter.exception( "Exception raised when creating Filter\Path, Exec\Program or Exec\CallOperator:  $_" )
+        Exit
+    }
+
+    if( $bequiet.IsPresent ) {
+        $null = $pProcess.noOutput()
+    } else {
+        $null = $pProcess.saveOutput()
+    }
+
+    try {
+        [int] $iExitCode = $pProcess.run()
+    } catch {
+        $pWriter.exception( "run() raised an exception:  $_" )
+        Continue
+    }
+
+    [string] $sBuffer = "`tExitCode: $iExitCode => $( $item.theExpected.theExitCode )"
+    if( $iExitCode -eq $item.theExpected.theExitCode ) {
+        $pWriter.success( $sBuffer )
+    } else {
+        $pWriter.error( $sBuffer )
+    }
+
+    $pWriter.notice( $pProcess.getOutput() )
+
+    $pProcess = $null
+    $pProgram = $null
+    $pPath = $null
+
 }
-
-try {
-    [int] $iExitCode = $pProcess.saveOutput().run()
-} catch {
-    $pWriter.exception( "run() raised an exception:  $_" )
-}
-
-[string]$sBuffer = "`tExitCode: $iExitCode => -1"
-if( $iExitCode -eq '-1' ) {
-    $pWriter.success( $sBuffer )
-} else {
-    $pWriter.error( $sBuffer )
-}
-
-$pWriter.notice( $pProcess.getOutput() )
-
-# ------------------------------------------------------------------------------
-# Test 02
-# ------------------------------------------------------------------------------
-
-$pWriter.separateLine()
-$pWriter.notice( "Testing: $sProgramPath $( $aProgramArgCollection -join ' ' ) 1234" )
-
-try {
-    $null = $pProgram.setArgument( $aProgramArgCollection ).addArgument( '1234' )
-    $null = $pProcess.setProgram( $pProgram )
-} catch {
-    $pWriter.exception( "Exception raised when Exec\Program::setArgument() or Exec\CallOperator::setProgram:  $_" )
-    Exit
-}
-
-try {
-    $iExitCode = $pProcess.saveOutput().run()
-} catch {
-    $pWriter.exception( "run() raised an exception:  $_" )
-}
-
-$sBuffer = "`tExitCode: $iExitCode => 1234"
-if( $iExitCode -eq '1234' ) {
-    $pWriter.success( $sBuffer )
-} else {
-    $pWriter.error( $sBuffer )
-}
-$pWriter.notice( $pProcess.getOutput() )
-
-$pProcess = $null
-$pProgram = $null
-$pPath = $null
 
 $ErrorActionPreference = "Continue"
 

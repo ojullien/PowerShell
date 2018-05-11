@@ -45,6 +45,8 @@ class ExecAdapterAbstract {
 
     [ValidateNotNull()]
     [Program] $m_pProgram
+    [bool] $m_bSaveOutput = $false
+    [string] $m_sOutput = ''
 
     # Constructors
 
@@ -64,6 +66,65 @@ class ExecAdapterAbstract {
     }
 
     # Class methods
+
+    [ExecAdapterAbstract] noOutput() {
+    <#
+    .SYNOPSIS
+        Does not allow the read of the output stream.
+    .DESCRIPTION
+        See synopsis.
+    .EXAMPLE
+        $instance.noOutput()
+    #>
+        $this.m_bSaveOutput = $false
+        $this.m_sOutput = ''
+        return $this
+    }
+
+    [ExecAdapterAbstract] saveOutput() {
+    <#
+    .SYNOPSIS
+        Allows the read of the output stream.
+    .DESCRIPTION
+        See synopsis.
+    .EXAMPLE
+        $instance.saveOutput()
+    #>
+        $this.m_bSaveOutput = $true
+        $this.m_sOutput = ''
+        return $this
+    }
+
+    [string] getOutput() {
+    <#
+    .SYNOPSIS
+        Returns the raw program output.
+    .DESCRIPTION
+        See synopsis.
+    .EXAMPLE
+        $instance.getOutput()
+    #>
+        return $this.m_sOutput.Trim()
+    }
+
+    [string[]] getSplitedOutput() {
+    <#
+    .SYNOPSIS
+        Returns a string array that contains the program output
+    .DESCRIPTION
+        See synopsis.
+    .EXAMPLE
+        $instance.getOutput()
+    #>
+        $this.m_sOutput = $this.m_sOutput.Trim()
+        $this.m_sOutput = $this.m_sOutput -replace "\r\n$", ""
+        if ( $this.m_sOutput.Contains( "`r`n" ) ) {
+            $this.m_sOutput = $this.m_sOutput -split "`r`n"
+        } elseif ( $this.m_sOutput.Contains( "`n" ) ) {
+            $this.m_sOutput = $this.m_sOutput -split "`n"
+        }
+        return $this.m_sOutput
+    }
 
     [ExecAdapterAbstract] setProgram( [Program] $pProgram ) {
     <#

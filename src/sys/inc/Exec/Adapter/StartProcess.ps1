@@ -43,61 +43,17 @@ class StartProcess : ExecAdapterAbstract {
 
     # Properties
 
-    [bool] $m_bSaveOutput = $false
-    [string] $m_sOutput = ''
+
 
     # Constructors
 
-    SystemDiagnosticsProcess() {
-        $this.m_bUseShellExecute = $false
-        $this.m_bRedirectStandardOutput = $true
+    StartProcess() {
         $this.m_bSaveOutput = $false
         $this.m_sOutput = ''
     }
 
     # Class methods
 
-    [SystemDiagnosticsProcess] noOutput() {
-    <#
-    .SYNOPSIS
-        Does not allow the read of the output stream.
-    .DESCRIPTION
-        See synopsis.
-    .EXAMPLE
-        $instance.noOutput()
-    #>
-        $this.m_bSaveOutput = $false
-        $this.m_sOutput = ''
-        return $this
-    }
-
-    [SystemDiagnosticsProcess] saveOutput() {
-    <#
-    .SYNOPSIS
-        Allows the read of the output stream.
-        Works only if ProcessStartInfo.UseShellExecute = $false and ProcessStartInfo.RedirectStandardOutput = $true.
-    .DESCRIPTION
-        See synopsis.
-    .EXAMPLE
-        $instance.saveOutput()
-    #>
-        $this.m_bSaveOutput = $true
-        $this.m_sOutput = ''
-        return $this
-    }
-
-    [string] getOutput() {
-    <#
-    .SYNOPSIS
-        Returns the program output.
-        Works only if ProcessStartInfo.UseShellExecute = $false and ProcessStartInfo.RedirectStandardOutput = $true.
-    .DESCRIPTION
-        See synopsis.
-    .EXAMPLE
-        $instance.getOutput()
-    #>
-        return $this.m_sOutput
-    }
 
     [int] run() {
     <#

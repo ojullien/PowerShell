@@ -43,9 +43,6 @@ class CallOperator : ExecAdapterAbstract {
 
     # Properties
 
-    [bool] $m_bSaveOutput = $false
-    [string] $m_sOutput = ''
-
     # Constructors
 
     CallOperator() {
@@ -54,46 +51,6 @@ class CallOperator : ExecAdapterAbstract {
     }
 
     # Class methods
-
-    [CallOperator] noOutput() {
-    <#
-    .SYNOPSIS
-        Does not allow the read of the output stream.
-    .DESCRIPTION
-        See synopsis.
-    .EXAMPLE
-        $instance.noOutput()
-    #>
-        $this.m_bSaveOutput = $false
-        $this.m_sOutput = ''
-        return $this
-    }
-
-    [CallOperator] saveOutput() {
-    <#
-    .SYNOPSIS
-        Allows the read of the output stream.
-    .DESCRIPTION
-        See synopsis.
-    .EXAMPLE
-        $instance.saveOutput()
-    #>
-        $this.m_bSaveOutput = $true
-        $this.m_sOutput = ''
-        return $this
-    }
-
-    [string] getOutput() {
-    <#
-    .SYNOPSIS
-        Returns the program output.
-    .DESCRIPTION
-        See synopsis.
-    .EXAMPLE
-        $instance.getOutput()
-    #>
-        return $this.m_sOutput
-    }
 
     [int] run() {
     <#
@@ -105,18 +62,23 @@ class CallOperator : ExecAdapterAbstract {
     .EXAMPLE
         $instance.run()
     #>
+        # Initialize
+        $this.m_sOutput = ''
+        $OFS = ' '
+
+        # Argument test
         if( $this.m_pProgram -eq $null ) {
             throw 'Program is not set.'
         }
 
-        $this.m_sOutput = & $this.m_pProgram.getProgramPath() $this.m_pProgram.getArguments()
-        [int] $iReturn = $LASTEXITCODE
-
-        if( !$this.m_bSaveOutput ) {
-            $this.m_sOutput = ''
+        # Run
+        if( $this.m_bSaveOutput ) {
+            $this.m_sOutput = & $this.m_pProgram.getProgramPath() $this.m_pProgram.getArguments()
+        } else {
+            $null = & $this.m_pProgram.getProgramPath() $this.m_pProgram.getArguments()
         }
 
-        return $iReturn
+        return [int]$LASTEXITCODE
     }
 
 }
