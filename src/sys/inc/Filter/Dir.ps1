@@ -45,10 +45,6 @@ class Dir : FilterAbstract {
 
     Dir() {}
 
-    Dir( [Path] $value ) {
-        $null = $this.doFilter( $value )
-    }
-
     # Methods
 
     [bool] isValid( [Path] $pPath ) {

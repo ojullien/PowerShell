@@ -44,6 +44,9 @@ class Robocopy {
     # Properties
 
     [ValidateNotNull()]
+    [int] $m_iExitCode
+
+    [ValidateNotNull()]
     [Drive] $m_pSource
 
     [ValidateNotNull()]
@@ -58,136 +61,141 @@ class Robocopy {
     [ValidateNotNullOrEmpty()]
     hidden [string] $m_sRobocopyLogName = "robocopy"
 
+    [ValidateNotNullOrEmpty()]
+    hidden [string] $m_ExePath = 'C:\Windows\System32\robocopy.exe'
+
+    [ValidateNotNullOrEmpty()]
+    [string[]] $m_aDefaultArgumentList = @( `
+        # Copy options
+        "/Z", "/MIR", `
+        # File options
+        "/DST", `
+        # Retry options
+        "/R:3", "/W:5", `
+        # Log options
+        "/X", "/V", "/FP", "/NS", "/NP", "/TEE" )
+
     # Constructors
 
     Robocopy() {
-        throw "Usage: [Robocopy]::new( <source as [Drive], destination as [Drive], log dir as [Path], adapter as [ExecAdapterAbstract]>"
+        throw "Usage: [Robocopy]::new( <source as [Drive\Drive], destination as [Drive\Drive], log path and name as [Filter\Path], adapter as [Exec\ExecAdapterAbstract]>"
     }
 
     Robocopy ( [Drive] $source, [Drive] $destination, [Path] $logpath, [ExecAdapterAbstract] $adapter ) {
 
         if( ( $source -eq $null ) -or ( $destination -eq $null ) -or ( $logpath -eq $null ) -or ( $adapter -eq $null )  ) {
-            throw "Usage: [Robocopy]::new( <source as [Drive], destination as [Drive], log dir as [Path], adapter as [ExecAdapterAbstract]>"
+            throw "Usage: [Robocopy]::new( <source as [Drive\Drive], destination as [Drive\Drive], log path and name as [Filter\Path], adapter as [Exec\ExecAdapterAbstract]>"
         }
 
-        if( -Not [Dir]::new().exists( $logpath )) {
-            throw "Robocopy: The log path must be valid."
+        if( !$logpath.isValid() ) {
+            throw "Robocopy: The log path and name is not valid."
         }
 
         $this.m_pSource = $source
         $this.m_pDestination = $destination
         $this.m_pAdapter = $adapter
         $this.m_pLogPath = $logpath
+        $this.m_iExitCode = 0
 
     }
 
     # Class methods
 
     [string] ToString() {
-        return "[Robocopy] Configuration`n`tSource: $($this.m_pSource)`n`tDestination: $($this.m_pDestination)`n`tLog path: $($this.m_pLogPath)`n`tAdapter: $($this.adapter.GetType())"
+        return "[Robocopy] Configuration`n `
+            `tSource: $($this.m_pSource.getTrace())`n `
+            `tDestination: $($this.m_pDestination.getTrace())`n `
+            `tLog path: $($this.m_pLogPath)`n `
+            `tAdapter: $($this.adapter.GetType()) `
+            `tOptions: $($this.m_aDefaultArgumentList)"
     }
 
-    [void] cleanLog() {
-    <#
-    .SYNOPSIS
-        Deletes old log files.
-    .DESCRIPTION
-        See synopsis.
-    .EXAMPLE
-        [Robocopy]$instance.cleanLog()
-    #>
-        # Log dir must exist
-        if( -Not [Dir]::new().exists( [Path]::new( $this.m_sLogPath ) )) {
-            throw "The log path must be valid"
-        }
-        # Delete
-        foreach( $sName in @( $this.m_sRobocopyLogName, $this.m_sContigerLogName )) {
-            $this.m_pWriter.notice( "Cleaning '$sName-*.log' files from $($this.m_sLogPath)" )
-            Remove-Item "$($this.m_sLogPath)\$sName-*.log"
-        }
+    [int] getExitCode() {
+        return $this.m_iExitCode
     }
 
     [bool] isReadySource() {
     <#
     .SYNOPSIS
-        Return true if the source drive is ready.
+        Return true if the source drive is ready and the path exists.
     .DESCRIPTION
         See synopsis.
     .EXAMPLE
-        $pSaveTo.isReadySource()
+        [Robocopy]$instance.isReadySource()
     #>
+        #Initialize
         [bool] $bReturn = $false
-        if( $this.m_pSource -eq $null ) {
-            $this.m_pWriter.error( "Source is not set." )
-        } elseif( $this.m_pSource.isReady() -and $this.m_pSource.testPath() ) {
-                $bReturn = $true
-        } else {
-            $this.m_pWriter.error( "$($this.m_pSource) is missing" )
+
+        # Test
+        if( ( $this.m_pSource -ne $null ) -and ( $this.m_pSource.isReady() ) -and ( $this.m_pSource.testPath() )) {
+            $bReturn = $true
         }
+
         return $bReturn
     }
 
     [bool] isReadyDestination() {
     <#
     .SYNOPSIS
-        Return true if the destination drive is ready.
+        Return true if the destination drive is ready and the path exists.
     .DESCRIPTION
         See synopsis.
     .EXAMPLE
-        $pSaveTo.isReadyDestination()
+        [Robocopy]$instance.isReadyDestination()
     #>
+        #Initialize
         [bool] $bReturn = $false
-        if( $this.m_pDestination -eq $null ) {
-            $this.m_pWriter.error( "Destination is not set." )
-        } elseif( $this.m_pDestination.isReady() -and $this.m_pDestination.testPath() ) {
-                $bReturn = $true
-        } else {
-            $this.m_pWriter.error( "$($this.m_pDestination) is missing" )
+
+        # Test
+        if( ( $this.m_pDestination -ne $null ) -and ( $this.m_pDestination.isReady() ) -and ( $this.m_pDestination.testPath() )) {
+            $bReturn = $true
         }
+
         return $bReturn
     }
 
-    [bool] robocopy( [string] $sFolder ) {
+    [bool] run() {
     <#
     .SYNOPSIS
-        Robust file/directory copy. The source and the destination must be set.
+        Robust directory copy. The source and the destination must be set.
         Returns true if the command succeeded.
         Return false if the drives are not ready or the command failed.
     .DESCRIPTION
         See synopsis.
     .EXAMPLE
-        $pSaveTo.robocopy( <folder name as string> )
-    .PARAMETER sFolder
-        The folder name
+        [Robocopy]$instance.run()
     #>
-        if( [string]::IsNullOrWhiteSpace( $sFolder )) {
-            throw "Usage: [SaveTo]::robocopy( <folder name as string> )"
+        # Initialize
+        [bool] $bReturn = $false
+        $this.m_iExitCode = 0
+
+        # Adapter test
+        if( $this.m_pAdapter -eq $null ) {
+            throw "Usage: [Robocopy]::new( <source as [Drive], destination as [Drive], log dir as [Path], adapter as [ExecAdapterAbstract]>"
         }
 
-        [bool] $bReturn = $false
-        $sFolder = $sFolder.Trim().Trim('\')
-
+        # Run
         if( $this.isReadySource() -and $this.isReadyDestination() ) {
 
-            # Robocopy
-            try {
-                $pProcess = [CRobocopy]::new(
-                    "$($this.m_pSource.getDriveLetter())\$($this.m_pSource.getSubFolder())\$sFolder",
-                    "$($this.m_pDestination.getDriveLetter())\$($this.m_pDestination.getSubFolder())\$sFolder",
-                    "$($this.m_sLogPath)\$($this.m_sRobocopyLogName)-$sFolder.log" )
+            # Build the arguments
+            [string[]] $aArgumentList = @( "`"$([string]$this.m_pSource)`"", "`"$([string]$this.m_pDestination)`"" )
+            $aArgumentList += $this.m_aDefaultArgumentList
+            $aArgumentList += "/log:`"$($this.m_pLogPath)`""
 
-                $bReturn = $pProcess.setWriter( $this.m_pWriter ).run()
+            # Set the program, the options and run execute the command
+            $this.m_iExitCode = $this.m_pAdapter.setProgram( [Program]::new().setProgramPath( [Path]::new( $this.m_ExePath ) ).setArgument( $aArgumentList ) ).run()
+
+            if( $this.m_iExitCode -gt 8 ) {
+                $bReturn = $false
+            } else {
+                $bReturn = $true
             }
-            catch {
-                $this.m_pWriter.error( "Cannot load or execute CRobocopy: $_" )
-            }
 
-            Remove-Variable -Name [CRobocopy]$pProcess
-
+        } else {
+            throw "Robocopy: Drives are not ready."
         }
+
         return $bReturn
     }
-
-
 
 }

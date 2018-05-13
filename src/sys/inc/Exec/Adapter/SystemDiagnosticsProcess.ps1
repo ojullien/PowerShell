@@ -65,7 +65,7 @@ class SystemDiagnosticsProcess : ExecAdapterAbstract {
     .DESCRIPTIONs
         See synopsis.
     .EXAMPLE
-        $instance.run()
+        [SystemDiagnosticsProcess]$instance.run()
     #>
         # Initialize
         $this.m_sOutput = ''
@@ -73,7 +73,7 @@ class SystemDiagnosticsProcess : ExecAdapterAbstract {
 
         # Argument test
         if( $this.m_pProgram -eq $null ) {
-            throw 'Program is not set.'
+            throw '[Program] is not set.'
         }
 
         # Run

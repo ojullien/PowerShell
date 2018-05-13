@@ -112,7 +112,7 @@ foreach( $item in $aTestDataCollection ) {
     }
 
     try {
-        $pDrive = [Drive]::new( $pPath ).setVolumeLabel( $item.theInput.label )
+        $pDrive = [Drive]::new( $pPath, $item.theInput.label )
     }
     catch {
         $pWriter.error( "Cannot load Drive\Drive module: $_" )
@@ -214,6 +214,9 @@ foreach( $item in $aTestDataCollection ) {
         $pWriter.error( $sBuffer )
     }
 
+    # getTrace
+    $pWriter.notice( "Trace: `t`t" + $pDrive.getTrace() )
+    $pWriter.notice( "ToString: `t" + [string]$pDrive )
 }
 
 $ErrorActionPreference = "Continue"

@@ -51,12 +51,15 @@ class Drive {
     # Constructors
 
     Drive() {
-        $this.m_pPath = $null
-        $this.m_sVolumeLabel = ''
+        throw "Usage: [Drive]::new( <path as [Path], volume label as [string]>"
     }
 
-    Drive( [Path] $value ) {
-        $this.m_pPath = $value
+    Drive( [Path] $path, [string] $label ) {
+        if( ($path -eq $null) -or ([string]::IsNullOrWhiteSpace( $label ))) {
+            throw "Usage: [Drive]::new( <path as [Path], volume label as [string]>"
+        }
+        $this.m_pPath = $path
+        $this.m_sVolumeLabel = $label.Trim()
     }
 
     # Methods
@@ -84,20 +87,16 @@ class Drive {
         return $sReturn
     }
 
-    [Drive] setVolumeLabel( [string] $value ) {
-        if( [string]::IsNullOrWhiteSpace( $value ) ) {
-            throw 'Usage: [Drive]$object.setVolumeLabel( <volume label as string> )'
-        }
-        $this.m_sVolumeLabel = $value.Trim()
-        return $this
-    }
-
     [string] getVolumeLabel() {
         return $this.m_sVolumeLabel
     }
 
-    [string] ToString() {
+    [string] getTrace() {
         return "Volume `"" + $this.m_sVolumeLabel + "`" on `"" + $this.getDriveLetter() + [System.IO.Path]::DirectorySeparatorChar + $this.getSubFolder() + "`""
+    }
+
+    [string] ToString() {
+        return $this.getDriveLetter() + [System.IO.Path]::DirectorySeparatorChar + $this.getSubFolder()
     }
 
     [bool] testPath()

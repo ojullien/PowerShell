@@ -60,7 +60,7 @@ class CallOperator : ExecAdapterAbstract {
     .DESCRIPTION
         See synopsis.
     .EXAMPLE
-        $instance.run()
+        [CallOperator]$instance.run()
     #>
         # Initialize
         $this.m_sOutput = ''

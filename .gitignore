@@ -2,3 +2,5 @@
 desktop.ini
 /temp/
 /tmp/
+/src/saveto.*.cmd
+/test/priv.*.ps1

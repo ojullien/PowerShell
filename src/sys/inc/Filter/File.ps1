@@ -45,10 +45,6 @@ class File : FilterAbstract {
 
     File() {}
 
-    File( [Path] $value ) {
-        $null = $this.doFilter( $value )
-    }
-
     # Methods
 
     [bool] isValid( [Path] $pPath ) {
