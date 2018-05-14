@@ -39,6 +39,7 @@ Require .NET Core
 
 #>
 
-[Drive] $pSource = [Drive]::new( [Path]::new("C:") ).setVolumeLabel( "OS" )
-[Drive] $pDestination = [Drive]::new( [Path]::new("C:\Temp") ).setVolumeLabel("OS")
-[string[]] $aLISTDIR = "dir1", "dir2"
+[hashtable[]] $appDrivesCollection = @(
+    @{ theSource = 'C:\dir1'; theSourceLabel = 'OS'; theDestination = 'C:\Temp\dir1'; theDestinationLabel = 'OS' },
+    @{ theSource = 'C:\dir2'; theSourceLabel = 'OS'; theDestination = 'C:\Temp\dir2'; theDestinationLabel = 'OS' }
+)

@@ -10,13 +10,29 @@ Require Powershell version: 6.0, .NET Framework 4.7, .NET Core
 
 Is a command-line directory replication command.
 Require robocopy.exe and contig.exe from sysinternals suite.
-Find and rename PowerShell/app/saveto/cfg/default.cfg.ps1 to PowerShell/app/saveto/cfg/myconfig.cfg.ps1, then edit the file and add source and destination information.
+Find and rename src/app/saveto/cfg/default.cfg.ps1 to src/app/saveto/cfg/myconfig.cfg.ps1, then edit the file and add source and destination information.
 
 ```powershell
-PS C:\PowerShell> .\saveto.ps1 -cfg myconfig [options]
+PS C:\PowerShell\src> .\saveto.ps1 -cfg myconfig [options]
 
 other options
 
+-bequiet    Quiet mode
+-logtofile  Log to a file in the log dir
+```
+
+## Test
+
+I write few lines of 'unit test' code.
+Each file contains code for one class. It display a dot for a successfull test, an 'X' for a failure and an 'E' when an unexpected exception is raised.
+Use the -verbose option to display all the details of the tests.
+
+```powershell
+PS C:\PowerShell\test> .\filter.path.ps1 [options]
+
+Options:
+
+-verbose    Display the details of the tests, in a human readable format.
 -bequiet    Quiet mode
 -logtofile  Log to a file in the log dir
 ```

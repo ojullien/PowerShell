@@ -20,7 +20,7 @@
 
 .EXTERNALMODULEDEPENDENCIES
 
-.REQUIREDSCRIPTS sys\inc\Drive\Drive.ps1, sys\inc\Exec\Adapter\Abstract.ps1, sys\inc\Exec\Program.ps1, src\sys\inc\Filter\Dir.ps1, sys\inc\Filter\Path.ps1
+.REQUIREDSCRIPTS sys\inc\Drive\Drive.ps1, sys\inc\Exec\Adapter\Abstract.ps1, sys\inc\Exec\Program.ps1, sys\inc\Filter\Path.ps1
 
 .EXTERNALSCRIPTDEPENDENCIES
 
@@ -59,9 +59,6 @@ class Robocopy {
     [ExecAdapterAbstract] $m_pAdapter
 
     [ValidateNotNullOrEmpty()]
-    hidden [string] $m_sRobocopyLogName = "robocopy"
-
-    [ValidateNotNullOrEmpty()]
     hidden [string] $m_ExePath = 'C:\Windows\System32\robocopy.exe'
 
     [ValidateNotNullOrEmpty()]
@@ -78,13 +75,13 @@ class Robocopy {
     # Constructors
 
     Robocopy() {
-        throw "Usage: [Robocopy]::new( <source as [Drive\Drive], destination as [Drive\Drive], log path and name as [Filter\Path], adapter as [Exec\ExecAdapterAbstract]>"
+        throw "Usage: [Robocopy]::new( <source as [Drive\Drive], destination as [Drive\Drive], log path and name as [Filter\Path], adapter as [Exec\Adapter\ExecAdapterAbstract]>"
     }
 
     Robocopy ( [Drive] $source, [Drive] $destination, [Path] $logpath, [ExecAdapterAbstract] $adapter ) {
 
         if( ( $source -eq $null ) -or ( $destination -eq $null ) -or ( $logpath -eq $null ) -or ( $adapter -eq $null )  ) {
-            throw "Usage: [Robocopy]::new( <source as [Drive\Drive], destination as [Drive\Drive], log path and name as [Filter\Path], adapter as [Exec\ExecAdapterAbstract]>"
+            throw "Usage: [Robocopy]::new( <source as [Drive\Drive], destination as [Drive\Drive], log path and name as [Filter\Path], adapter as [Exec\Adapter\ExecAdapterAbstract]>"
         }
 
         if( !$logpath.isValid() ) {
@@ -102,12 +99,12 @@ class Robocopy {
     # Class methods
 
     [string] ToString() {
-        return "[Robocopy] Configuration`n `
-            `tSource: $($this.m_pSource.getTrace())`n `
-            `tDestination: $($this.m_pDestination.getTrace())`n `
-            `tLog path: $($this.m_pLogPath)`n `
-            `tAdapter: $($this.adapter.GetType()) `
-            `tOptions: $($this.m_aDefaultArgumentList)"
+        return "[Robocopy] Configuration`n" `
+            + "`tSource: $($this.m_pSource.getTrace())`n" `
+            + "`tDestination: $($this.m_pDestination.getTrace())`n" `
+            + "`tLog path: $([string]$this.m_pLogPath)`n" `
+            + "`tAdapter: $($this.m_pAdapter.GetType())`n" `
+            + "`tOptions: $($this.m_aDefaultArgumentList)"
     }
 
     [int] getExitCode() {
@@ -171,7 +168,7 @@ class Robocopy {
 
         # Adapter test
         if( $this.m_pAdapter -eq $null ) {
-            throw "Usage: [Robocopy]::new( <source as [Drive], destination as [Drive], log dir as [Path], adapter as [ExecAdapterAbstract]>"
+            throw "Usage: [Robocopy]::new( <source as [Drive\Drive], destination as [Drive\Drive], log dir as [Filter\Path], adapter as [Exec\Adapter\ExecAdapterAbstract]>"
         }
 
         # Run

@@ -1,6 +1,6 @@
 <#PSScriptInfo
 
-.VERSION 1.0.0
+.VERSION 1.2.0
 
 .GUID 7bde70cf-c91a-43b1-86e9-0b4e13c33db7
 
@@ -26,7 +26,9 @@
 
 .RELEASENOTES
 Date: 20180501
-Powershell Version: 5.1
+Require Powershell Version: 6.0.2
+Require .NET Framework 4.7
+Require .NET Core
 
 #>
 

@@ -39,31 +39,19 @@ Require .NET Core
 
 #>
 
-# -----------------------------------------------------------------------------
-# Trace
-# -----------------------------------------------------------------------------
 $pWriter.separateLine()
-
 $pWriter.notice( "App configuration" )
-$pWriter.noticel( "`tSource: $pSource " )
-if( $pSource.testPath() -and $pSource.isReady() ) {
-    $pWriter.success( "exists" )
-} else {
-    $pWriter.error( "is missing" )
-}
+[bool] $appDrivesReady = $true
 
-$pWriter.noticel( "`tDestination: $pDestination " )
-if( $pDestination.testPath() -and $pDestination.isReady() ) {
-    $pWriter.success( "exists" )
-} else {
-    $pWriter.error( "is missing" )
-}
-
-$pWriter.noticel( "`tList directories: " )
-foreach( $sDir in $aLISTDIR) {
-    $pWriter.noticel( "$sDir " )
-    if( ! [Dir]::new().exists( [Path]::new( $pSource.getDriveLetter() + [System.IO.Path]::DirectorySeparatorChar + $pSource.getSubFolder() + [System.IO.Path]::DirectorySeparatorChar + $sDir ) )) {
-        $pWriter.noticel( "(!is missing) " )
+foreach( $item in $appDrivesCollection ) {
+    $pWriter.noticel( "`tFrom '" + "`'$($item.theSource)`'"  + " on " + "`'$($item.theSourceLabel)`'" + " to " + "`'$($item.theDestination)`'" + " on " + "`'$($item.theDestinationLabel)`'." )
+    if( -not [Dir]::new().exists( $item.theSource ) ) {
+        $pWriter.error( "source is missing" )
+        $appDrivesReady = $false
     }
 }
-$pWriter.notice( "" )
+
+if( ($appDrivesCollection.count -eq 0) -or ( -not $appDrivesReady ) ){
+    $pWriter.notice( "Aborting ..." )
+    Exit
+}

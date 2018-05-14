@@ -6,4 +6,5 @@ Param()
 .\exec.program.ps1;
 .\exec.calloperator.ps1;
 .\exec.systemdiagnosticsprocess.ps1;
-
+.\exec.robocopy.ps1;
+.\exec.contig.ps1;

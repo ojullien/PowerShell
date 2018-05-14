@@ -54,9 +54,3 @@ $pWriter.notice( "Main configuration" )
 [Dir]::new().exists( $pWriter, "`tApp directory: $m_DIR_APP ", [Path]::new($m_DIR_APP) ) > $null
 [Dir]::new().exists( $pWriter, "`tLog directory: $m_DIR_LOG ", [Path]::new($m_DIR_LOG) ) > $null
 [File]::new().exists( $pWriter, "`tLog file: $m_DIR_LOG_PATH ", [Path]::new($m_DIR_LOG_PATH) ) > $null
-
-#[CValidator]::checkDir( [Writer] $pWriter, "`tScript directory: $m_DIR_SCRIPT ", $m_DIR_SCRIPT ) > $null
-#[CValidator]::checkDir( [Writer] $pWriter, "`tSystem directory: $m_DIR_SYS ", $m_DIR_SYS ) > $null
-#[CValidator]::checkDir( [Writer] $pWriter, "`tApp directory: $m_DIR_APP ", $m_DIR_APP ) > $null
-#[CValidator]::checkDir( [Writer] $pWriter, "`tLog directory: $m_DIR_LOG ", $m_DIR_LOG ) > $null
-#[CValidator]::checkFile( [Writer] $pWriter, "`tLog file is: $m_DIR_LOG_PATH ", $m_DIR_LOG_PATH ) > $null
