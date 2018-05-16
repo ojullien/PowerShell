@@ -20,7 +20,7 @@
 
 .EXTERNALMODULEDEPENDENCIES
 
-.REQUIREDSCRIPTS src\sys\inc\Writer, src\sys\inc\Filter\Path.ps1, src\sys\inc\Filter\File.ps1, test\sys\inc\Filter\File.ps1
+.REQUIREDSCRIPTS src\sys\inc\Writer\Verbose.ps1, src\sys\inc\Filter\Path.ps1, src\sys\inc\Filter\File.ps1, test\sys\inc\Filter\File.ps1
 
 .EXTERNALSCRIPTDEPENDENCIES
 
@@ -50,28 +50,12 @@ $ErrorActionPreference = "Stop"
 $PSDefaultParameterValues['*:ErrorAction']='Stop'
 
 # -----------------------------------------------------------------------------
-# Load sys files
+# Load common sys files
 # -----------------------------------------------------------------------------
-. ("$PWD\..\src\sys\cfg\constant.ps1")
-. ("$m_DIR_SYS\inc\Writer\Output\OutputAbstract.ps1")
-. ("$m_DIR_SYS\inc\Writer\Writer.ps1")
-. ("$m_DIR_SYS\inc\Writer\Verbose.ps1")
 
-try {
-    $pWriter = [Verbose]::new( $verbose.IsPresent, 80 )
-    if( -Not $bequiet.IsPresent ) {
-        . ("$m_DIR_SYS\inc\Writer\Output\OutputHost.ps1")
-        $pWriter.addOutput( [OutputHost]::new() )
-    }
-    if( $logtofile.IsPresent ) {
-        . ("$m_DIR_SYS\inc\Writer\Output\OutputLog.ps1")
-        $pWriter.addOutput( [OutputLog]::new( $m_DIR_LOG_PATH ) )
-    }
-}
-catch {
-    $pWriter.error( "ERROR: Cannot load Writer module: $_" )
-    Exit
-}
+. ("$PWD\..\src\sys\cfg\constant.ps1")
+. ("$m_DIR_SCRIPT\test\sys\cfg\constant.ps1")
+. ("$m_DIR_SYS\inc\Writer\autoload.ps1")
 
 # -----------------------------------------------------------------------------
 # Load Filter\Path and Filter\File files
@@ -85,7 +69,7 @@ try {
     $pDir = [File]::new()
 }
 catch {
-    $pWriter.error( "ERROR: Cannot load Filter\File module: $_" )
+    $pWriterDecorated.error( "ERROR: Cannot load Filter\File module: $_" )
     Exit
 }
 
@@ -101,14 +85,14 @@ catch {
 
 foreach( $item in $aTestDataCollection ) {
 
-    $pWriter.separateLine()
-    $pWriter.notice( "Testing: '$( $item.theInput )'" )
+    $pWriterDecorated.separateLine()
+    $pWriterDecorated.notice( "Testing: '$( $item.theInput )'" )
 
     try {
         $pPath = [Path]::new( $item.theInput  )
     }
     catch {
-        $pWriter.error( "Cannot load Filter\Path module: $_" )
+        $pWriterDecorated.error( "Cannot load Filter\Path module: $_" )
         Exit
     }
 
@@ -119,18 +103,18 @@ foreach( $item in $aTestDataCollection ) {
         [bool] $bResult = $pDir.isValid( $pPath )
     } catch {
         if( $item.theExpected.Exception ) {
-            $pWriter.exceptionExpected( "isValid raised an expected exception:  $_" )
+            $pWriterDecorated.exceptionExpected( "isValid raised an expected exception:  $_" )
         } else {
-            $pWriter.exception( "isValid raised an exception:  $_" )
+            $pWriterDecorated.exception( "isValid raised an exception:  $_" )
         }
         continue
     }
 
     $sBuffer = "`tisValid: '$([string]$bResult)' => '$( $item.theExpected.isValid )'"
     if( $bResult -eq $item.theExpected.isValid ) {
-        $pWriter.success( $sBuffer )
+        $pWriterDecorated.success( $sBuffer )
     } else {
-        $pWriter.error( $sBuffer )
+        $pWriterDecorated.error( $sBuffer )
     }
 
     # exists
@@ -138,18 +122,18 @@ foreach( $item in $aTestDataCollection ) {
         [bool] $bResult = $pDir.exists( $pPath )
     } catch {
         if( $item.theExpected.Exception ) {
-            $pWriter.exceptionExpected( "exists raised an expected exception:  $_" )
+            $pWriterDecorated.exceptionExpected( "exists raised an expected exception:  $_" )
         } else {
-            $pWriter.exception( "exists raised an exception:  $_" )
+            $pWriterDecorated.exception( "exists raised an exception:  $_" )
         }
         continue
     }
 
     $sBuffer = "`texists: '$([string]$bResult)' => '$( $item.theExpected.exists )'"
     if( $bResult -eq $item.theExpected.exists ) {
-        $pWriter.success( $sBuffer )
+        $pWriterDecorated.success( $sBuffer )
     } else {
-        $pWriter.error( $sBuffer )
+        $pWriterDecorated.error( $sBuffer )
     }
 
     # doFilter
@@ -157,18 +141,18 @@ foreach( $item in $aTestDataCollection ) {
         [string] $result = $pDir.doFilter( $pPath )
     } catch {
         if( $item.theExpected.Exception ) {
-            $pWriter.exceptionExpected( "doFilter raised an expected exception:  $_" )
+            $pWriterDecorated.exceptionExpected( "doFilter raised an expected exception:  $_" )
         } else {
-            $pWriter.exception( "doFilter raised an exception:  $_" )
+            $pWriterDecorated.exception( "doFilter raised an exception:  $_" )
         }
         continue
     }
 
     $sBuffer = "`tdoFilter: '$result' => '$( $item.theExpected.doFilter )'"
     if( $result -eq $item.theExpected.doFilter ) {
-        $pWriter.success( $sBuffer )
+        $pWriterDecorated.success( $sBuffer )
     } else {
-        $pWriter.error( $sBuffer )
+        $pWriterDecorated.error( $sBuffer )
     }
 
 }

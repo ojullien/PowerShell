@@ -2,7 +2,7 @@
 
 .VERSION 1.2.0
 
-.GUID 73c97ada-0001-4f07-b18f-e1a38ac3a132
+.GUID 73c97ada-0005-4f07-b18f-e1a38ac3a132
 
 .AUTHOR Olivier Jullien
 
@@ -35,19 +35,17 @@ Require .NET Core
 <#
 
 .DESCRIPTION
- Output abstract and interface class
+ Writer interface
 
 #>
 
-class OutputAbstract {
+class WriterInterface {
 
     # Properties
 
-    hidden [bool] $bActivated = $true
-
     # Constructors
 
-    OutputAbstract() {
+    WriterInterface() {
     <#
     .SYNOPSIS
         Abstract constructor. This class must be overridden.
@@ -56,61 +54,18 @@ class OutputAbstract {
     #>
         $oType = $this.GetType()
 
-        if( $oType -eq [OutputAbstract] )
+        if( $oType -eq [WriterInterface] )
         {
             throw("Class $oType must be inherited")
         }
     }
 
-    # Class methods
-
-    [bool] isActivated() {
-    <#
-    .SYNOPSIS
-        Returns true if the writer is activated. False otherwise.
-    .DESCRIPTION
-        See synopsis.
-    .EXAMPLE
-        $pWriter.isActivated()
-    #>
-        return $this.bActivated
-    }
-
-    [void] activate() {
-    <#
-    .SYNOPSIS
-        Activates the writer.
-    .DESCRIPTION
-        See synopsis.
-    .EXAMPLE
-        $pWriter.activate()
-    #>
-        $this.bActivated = $true
-    }
-
-    [void] deactivate() {
-    <#
-    .SYNOPSIS
-        Deactivates the writer.
-    .DESCRIPTION
-        See synopsis.
-    .EXAMPLE
-        $pWriter.deactivate()
-    #>
-        $this.bActivated = $false
-    }
-
-    [String] ToString()
-    {
-        return "Output " + $this.GetType() + " is activated: " + $this.bActivated + ". "
-    }
-
-    # Child methods
+    # Methods
 
     [void] error( [string] $sTxt ) {
     <#
     .SYNOPSIS
-        If this writer is activated then writes an error type message.
+        Writes an error type message to the outputs.
         This method must be overridden by a child class.
     .DESCRIPTION
         See synopsis.
@@ -125,7 +80,7 @@ class OutputAbstract {
     [void] success( [string] $sTxt ) {
     <#
     .SYNOPSIS
-        If this writer is activated then writes a success type message.
+        Writes a success type message to the outputs.
         This method must be overridden by a child class.
     .DESCRIPTION
         See synopsis.
@@ -140,7 +95,7 @@ class OutputAbstract {
     [void] notice( [string] $sTxt ) {
     <#
     .SYNOPSIS
-        If this writer is activated then writes a message.
+        Writes a message to the outputs.
         This method must be overridden by a child class.
     .DESCRIPTION
         See synopsis.
@@ -155,7 +110,7 @@ class OutputAbstract {
     [void] noticel( [string] $sTxt ) {
     <#
     .SYNOPSIS
-        If this writer is activated then writes a message and does not go to the line.
+        Writes a message with no new line to the outputs.
         This method must be overridden by a child class.
     .DESCRIPTION
         See synopsis.
@@ -166,4 +121,18 @@ class OutputAbstract {
     #>
         throw("This method must be overridden")
     }
+
+
+    [void] separateLine() {
+    <#
+    .SYNOPSIS
+        Writes a line of - to the outputs.
+    .DESCRIPTION
+        See synopsis.
+    .EXAMPLE
+        separateLine
+    #>
+        throw("This method must be overridden")
+    }
+
 }

@@ -2,7 +2,7 @@
 
 .VERSION 1.2.0
 
-.GUID 73c97ada-0002-4f07-b18f-e1a38ac3a132
+.GUID 73c97ada-0003-4f07-b18f-e1a38ac3a132
 
 .AUTHOR Olivier Jullien
 
@@ -20,7 +20,7 @@
 
 .EXTERNALMODULEDEPENDENCIES
 
-.REQUIREDSCRIPTS src\sys\inc\Writer\Output\OutputAbstract.ps1
+.REQUIREDSCRIPTS src\sys\inc\Writer\Output\Abstract.ps1
 
 .EXTERNALSCRIPTDEPENDENCIES
 

@@ -56,28 +56,12 @@ Set-StrictMode -Version Latest
 New-Variable -Name m_OPTION_WAIT -Force -Option Constant,AllScope -Value $( if( $waituser.IsPresent ) {1} else {0} )
 
 # -----------------------------------------------------------------------------
-# Load sys\writer files
+# Load common sys files
 # -----------------------------------------------------------------------------
 
-. ("$PWD\sys\cfg\constant.ps1")
-. ("$m_DIR_SYS\inc\Writer\Output\OutputAbstract.ps1")
-. ("$m_DIR_SYS\inc\Writer\Writer.ps1")
-
-try {
-    $pWriter = [Writer]::new()
-    if( -Not $bequiet.IsPresent ) {
-        . ("$m_DIR_SYS\inc\Writer\Output\OutputHost.ps1")
-        $pWriter.addOutput( [OutputHost]::new() )
-    }
-    if( $logtofile.IsPresent ) {
-        . ("$m_DIR_SYS\inc\Writer\Output\OutputLog.ps1")
-        $pWriter.addOutput( [OutputLog]::new( $m_DIR_LOG_PATH ) )
-    }
-}
-catch {
-    $pWriter.error( "ERROR: Cannot load Writer module: $_" )
-    Exit
-}
+. ("$PWD\..\src\sys\cfg\constant.ps1")
+. ("$m_DIR_SCRIPT\test\sys\cfg\constant.ps1")
+. ("$m_DIR_SYS\inc\Writer\autoload.ps1")
 
 # -----------------------------------------------------------------------------
 # Load sys\Filter files
@@ -141,30 +125,10 @@ catch {
 # Clean log directory
 $pSaveTo.cleanLog()
 
-# Check source and destination drives
-if( !$pSaveTo.isReadySource() -or !$pSaveTo.isReadyDestination() ) {
-    $pWriter.notice( "Aborting ..." )
-    Exit
-}
 
-# Ask for confirmation
-$pWriter.notice( "$pSource and $pDestination are ready. " )
-if( -Not $bequiet.IsPresent ) {
-    $pWriter.notice( "Would you like to continue? (Default is No)" )
-    $Readhost = Read-Host "[y/n]"
-    Switch( $ReadHost ) {
-        Y { $pWriter.notice( "Yes, Saving ...") ; $bConfirmed = $true }
-        N { $pWriter.notice( "No, Aborting ...") ; $bConfirmed = $false }
-        Default { $pWriter.notice( "Default, Aborting ...") ; $bConfirmed = $false }
-    }
-} else {
-    $bConfirmed = $true
-}
 
-# Confirmation
-if( -not $bConfirmed ) {
-    Exit
-}
+
+
 
 # Copy
 foreach( $sDir in $aLISTDIR ) {

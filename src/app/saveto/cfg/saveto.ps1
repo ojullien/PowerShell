@@ -20,7 +20,7 @@
 
 .EXTERNALMODULEDEPENDENCIES
 
-.REQUIREDSCRIPTS sys,app\saveto
+.REQUIREDSCRIPTS src\sys\inc\Writer
 
 .EXTERNALSCRIPTDEPENDENCIES
 
@@ -43,15 +43,46 @@ $pWriter.separateLine()
 $pWriter.notice( "App configuration" )
 [bool] $appDrivesReady = $true
 
+# Trace
+[Drive] $pSource = $null
+[Drive] $pDestination = $null
 foreach( $item in $appDrivesCollection ) {
-    $pWriter.noticel( "`tFrom '" + "`'$($item.theSource)`'"  + " on " + "`'$($item.theSourceLabel)`'" + " to " + "`'$($item.theDestination)`'" + " on " + "`'$($item.theDestinationLabel)`'." )
-    if( -not [Dir]::new().exists( $item.theSource ) ) {
+    [Drive] $pSource = [Drive]::new( $item.theSource, $item.theSourceLabel )
+    [Drive] $pDestination = [Drive]::new( $item.theDestination, $item.theDestinationLabel )
+    $pWriter.noticel( "`tFrom " + "`'$($item.theSource)`'"  + " on " + "`'$($item.theSourceLabel)`'" + " to " + "`'$($item.theDestination)`'" + " on " + "`'$($item.theDestinationLabel)`'." )
+    if( !$pSource.isReady() -or !$pSource.testPath()  ) {
         $pWriter.error( "source is missing" )
         $appDrivesReady = $false
+    } elseif( !$pDestination.isReady() ) {
+        $pWriter.error( "destination is not ready" )
+        $appDrivesReady = $false
+    } else {
+        $pWriter.notice("")
+    }
+}
+$pSource = $null
+$pDestination = $null
+
+# Check drives
+if( ($appDrivesCollection.count -eq 0) -or ( -not $appDrivesReady ) ){
+    $pWriter.notice( "Aborting ..." )
+    Exit
+}
+
+# Ask for confirmation
+$pWriter.noticel( "All drives are ready." )
+[bool] $appConfirmed = $true
+if( -Not $bequiet.IsPresent ) {
+    $pWriter.notice( " Would you like to continue? (Default is No)" )
+    $Readhost = Read-Host "[y/n]"
+    Switch( $ReadHost ) {
+        Y { $pWriter.notice( "Yes, Saving ...") ; $appConfirmed = $true }
+        N { $pWriter.notice( "No, Aborting ...") ; $appConfirmed = $false }
+        Default { $pWriter.notice( "Default, Aborting ...") ; $appConfirmed = $false }
     }
 }
 
-if( ($appDrivesCollection.count -eq 0) -or ( -not $appDrivesReady ) ){
-    $pWriter.notice( "Aborting ..." )
+# Confirmation
+if( -not $appConfirmed ) {
     Exit
 }

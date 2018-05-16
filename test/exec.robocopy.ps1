@@ -20,7 +20,7 @@
 
 .EXTERNALMODULEDEPENDENCIES
 
-.REQUIREDSCRIPTS src\sys\inc\Writer, src\sys\inc\Exec\Robocopy.ps1, src\sys\inc\Exec\Adapter\Stub.ps1
+.REQUIREDSCRIPTS src\sys\inc\Writer\autoload.ps1, src\sys\inc\Exec\Robocopy.ps1, src\sys\inc\Exec\Adapter\Stub.ps1
 
 .EXTERNALSCRIPTDEPENDENCIES
 
@@ -50,29 +50,12 @@ $ErrorActionPreference = "Stop"
 $PSDefaultParameterValues['*:ErrorAction']='Stop'
 
 # -----------------------------------------------------------------------------
-# Load sys files
+# Load common sys files
 # -----------------------------------------------------------------------------
 
 . ("$PWD\..\src\sys\cfg\constant.ps1")
-. ("$m_DIR_SYS\inc\Writer\Output\OutputAbstract.ps1")
-. ("$m_DIR_SYS\inc\Writer\Writer.ps1")
-. ("$m_DIR_SYS\inc\Writer\Verbose.ps1")
-
-try {
-    $pWriter = [Verbose]::new( $verbose.IsPresent, 80 )
-    if( -Not $bequiet.IsPresent ) {
-        . ("$m_DIR_SYS\inc\Writer\Output\OutputHost.ps1")
-        $pWriter.addOutput( [OutputHost]::new() )
-    }
-    if( $logtofile.IsPresent ) {
-        . ("$m_DIR_SYS\inc\Writer\Output\OutputLog.ps1")
-        $pWriter.addOutput( [OutputLog]::new( $m_DIR_LOG_PATH ) )
-    }
-}
-catch {
-    $pWriter.error( "ERROR: Cannot load Writer module: $_" )
-    Exit
-}
+. ("$m_DIR_SCRIPT\test\sys\cfg\constant.ps1")
+. ("$m_DIR_SYS\inc\Writer\autoload.ps1")
 
 # -----------------------------------------------------------------------------
 # Load Filter\Path files
@@ -110,11 +93,11 @@ catch {
 
 foreach( $item in $aTestDataCollection ) {
 
-    $pWriter.separateLine()
+    $pWriterDecorated.separateLine()
 
     [hashtable] $hSource = $item.theInput.theSource
     [hashtable] $hDestination = $item.theInput.theDestination
-    $pWriter.notice( "Testing`n`t" + `
+    $pWriterDecorated.notice( "Testing`n`t" + `
         "Source`n`t`tDrive: '$( $hSource.theDrive )'`n`t`tLabel: '$( $hSource.theLabel )'`n`t`tDirectory: '$( $hSource.theDirectory )'`n`t"  + `
         "Destination`n`t`tDrive: '$( $hDestination.theDrive )'`n`t`tLabel: '$( $hDestination.theLabel )'`n`t`tDirectory: '$( $hDestination.theDirectory )'`n`t" )
 
@@ -123,7 +106,7 @@ foreach( $item in $aTestDataCollection ) {
         [Drive] $pSource = [Drive]::new( [Path]::new( $hSource.theDrive + [System.IO.Path]::DirectorySeparatorChar +  $hSource.theDirectory ), $hSource.theLabel )
         [Drive] $pDestination = [Drive]::new( [Path]::new( $hDestination.theDrive + [System.IO.Path]::DirectorySeparatorChar +  $hDestination.theDirectory) , $hDestination.theLabel )
     } catch {
-        $pWriter.exception( "Exception raised when creating Filter\Drive:  $_" )
+        $pWriterDecorated.exception( "Exception raised when creating Filter\Drive:  $_" )
         Exit
     }
 
@@ -131,7 +114,7 @@ foreach( $item in $aTestDataCollection ) {
     try {
         [Path] $pLog = [Path]::new( $item.theInput.theLog )
     } catch {
-        $pWriter.exception( "Exception raised when creating Filter\Path:  $_" )
+        $pWriterDecorated.exception( "Exception raised when creating Filter\Path:  $_" )
         Exit
     }
 
@@ -140,16 +123,16 @@ foreach( $item in $aTestDataCollection ) {
         [AdapterStub] $pStub = [AdapterStub]::new()
         $pStub.exitcode = [int]$item.theInput.theAdapterStubExitCode
     } catch {
-        $pWriter.exception( "Exception raised when creating Exec\Adapter\AdapterStub:  $_" )
+        $pWriterDecorated.exception( "Exception raised when creating Exec\Adapter\AdapterStub:  $_" )
         Exit
     }
 
     # Creates robocopy
     try {
         [Robocopy] $pRobocopy = [Robocopy]::new( $pSource, $pDestination, $pLog, $pStub )
-        $pWriter.notice( [string]$pRobocopy )
+        $pWriterDecorated.notice( [string]$pRobocopy )
     } catch {
-        $pWriter.exception( "Exception raised when creating Exec\Robocopy:  $_" )
+        $pWriterDecorated.exception( "Exception raised when creating Exec\Robocopy:  $_" )
         Exit
     }
 
@@ -159,26 +142,26 @@ foreach( $item in $aTestDataCollection ) {
         $bRun = $pRobocopy.run()
     } catch {
         if( $item.theExpected.theException ) {
-            $pWriter.exceptionExpected( "run() raised an expected exception:  $_" )
+            $pWriterDecorated.exceptionExpected( "run() raised an expected exception:  $_" )
         } else {
-            $pWriter.exception( "run() raised an exception:  $_" )
+            $pWriterDecorated.exception( "run() raised an exception:  $_" )
         }
         continue
     }
 
     [string] $sBuffer = "`tRun: $bRun => $( $item.theExpected.theRun )"
     if( $bRun -eq $item.theExpected.theRun ) {
-        $pWriter.success( $sBuffer )
+        $pWriterDecorated.success( $sBuffer )
     } else {
-        $pWriter.error( $sBuffer )
+        $pWriterDecorated.error( $sBuffer )
     }
 
     [int] $iExitCode = $pRobocopy.getExitCode()
     $sBuffer = "`tExitCode: $iExitCode => $( $item.theExpected.theExitCode )"
     if( $iExitCode -eq $item.theExpected.theExitCode ) {
-        $pWriter.success( $sBuffer )
+        $pWriterDecorated.success( $sBuffer )
     } else {
-        $pWriter.error( $sBuffer )
+        $pWriterDecorated.error( $sBuffer )
     }
 
     $pRobocopy = $null

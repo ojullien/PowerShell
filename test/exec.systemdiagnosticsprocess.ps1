@@ -20,7 +20,7 @@
 
 .EXTERNALMODULEDEPENDENCIES
 
-.REQUIREDSCRIPTS src\sys\inc\Writer, src\sys\inc\Exec\Adapter\SystemDiagnosticsProcess.ps1, test\sys\inc\Exec\Adapter\SystemDiagnosticsProcess.ps1
+.REQUIREDSCRIPTS src\sys\inc\Writer\autoload.ps1, src\sys\inc\Exec\Adapter\SystemDiagnosticsProcess.ps1, test\sys\inc\Exec\Adapter\SystemDiagnosticsProcess.ps1
 
 .EXTERNALSCRIPTDEPENDENCIES
 
@@ -50,29 +50,12 @@ $ErrorActionPreference = "Stop"
 $PSDefaultParameterValues['*:ErrorAction']='Stop'
 
 # -----------------------------------------------------------------------------
-# Load sys files
+# Load common sys files
 # -----------------------------------------------------------------------------
 
 . ("$PWD\..\src\sys\cfg\constant.ps1")
-. ("$m_DIR_SYS\inc\Writer\Output\OutputAbstract.ps1")
-. ("$m_DIR_SYS\inc\Writer\Writer.ps1")
-. ("$m_DIR_SYS\inc\Writer\Verbose.ps1")
-
-try {
-    $pWriter = [Verbose]::new( $verbose.IsPresent, 80 )
-    if( -Not $bequiet.IsPresent ) {
-        . ("$m_DIR_SYS\inc\Writer\Output\OutputHost.ps1")
-        $pWriter.addOutput( [OutputHost]::new() )
-    }
-    if( $logtofile.IsPresent ) {
-        . ("$m_DIR_SYS\inc\Writer\Output\OutputLog.ps1")
-        $pWriter.addOutput( [OutputLog]::new( $m_DIR_LOG_PATH ) )
-    }
-}
-catch {
-    $pWriter.error( "ERROR: Cannot load Writer module: $_" )
-    Exit
-}
+. ("$m_DIR_SCRIPT\test\sys\cfg\constant.ps1")
+. ("$m_DIR_SYS\inc\Writer\autoload.ps1")
 
 # -----------------------------------------------------------------------------
 # Load Filter\Path files
@@ -102,8 +85,8 @@ catch {
 
 foreach( $item in $aTestDataCollection ) {
 
-    $pWriter.separateLine()
-    $pWriter.notice( "Testing: '$( $item.theInput.theProgram )' $( $item.theInput.theArgs -join ' ' )" )
+    $pWriterDecorated.separateLine()
+    $pWriterDecorated.notice( "Testing: '$( $item.theInput.theProgram )' $( $item.theInput.theArgs -join ' ' )" )
 
     try {
         [Path] $pPath = [path]::new( $item.theInput.theProgram )
@@ -111,7 +94,7 @@ foreach( $item in $aTestDataCollection ) {
         [SystemDiagnosticsProcess] $pProcess = [SystemDiagnosticsProcess]::new()
         $null = $pProcess.setProgram( $pProgram )
     } catch {
-        $pWriter.exception( "Exception raised when creating Filter\Path, Exec\Program or Exec\SystemDiagnosticsProcess:  $_" )
+        $pWriterDecorated.exception( "Exception raised when creating Filter\Path, Exec\Program or Exec\SystemDiagnosticsProcess:  $_" )
         Exit
     }
 
@@ -124,18 +107,18 @@ foreach( $item in $aTestDataCollection ) {
     try {
         [int] $iExitCode = $pProcess.run()
     } catch {
-        $pWriter.exception( "run() raised an exception:  $_" )
+        $pWriterDecorated.exception( "run() raised an exception:  $_" )
         Continue
     }
 
     [string] $sBuffer = "`tExitCode: $iExitCode => $( $item.theExpected.theExitCode )"
     if( $iExitCode -eq $item.theExpected.theExitCode ) {
-        $pWriter.success( $sBuffer )
+        $pWriterDecorated.success( $sBuffer )
     } else {
-        $pWriter.error( $sBuffer )
+        $pWriterDecorated.error( $sBuffer )
     }
 
-    $pWriter.notice( $pProcess.getOutput() )
+    $pWriterDecorated.notice( $pProcess.getOutput() )
 
     $pProcess = $null
     $pProgram = $null

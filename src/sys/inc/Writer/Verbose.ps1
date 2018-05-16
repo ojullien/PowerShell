@@ -2,7 +2,7 @@
 
 .VERSION 1.2.0
 
-.GUID 73c97ada-0005-4f07-b18f-e1a38ac3a132
+.GUID 73c97ada-0007-4f07-b18f-e1a38ac3a132
 
 .AUTHOR Olivier Jullien
 
@@ -20,9 +20,9 @@
 
 .EXTERNALMODULEDEPENDENCIES
 
-.REQUIREDSCRIPTS src\sys\inc\Writer\Writer.ps1
+.REQUIREDSCRIPTS
 
-.EXTERNALSCRIPTDEPENDENCIES
+.EXTERNALSCRIPTDEPENDENCIES src\sys\inc\Writer\Interface.ps1
 
 .RELEASENOTES
 Date: 20180501
@@ -35,27 +35,41 @@ Require .NET Core
 <#
 
 .DESCRIPTION
- Writer class for test.
+ Writer class for test. This class is a writer decorator.
  Writes a dot '.' for a successful test, an 'X' for a failed test and a 'E' when an unexpected exception is raised.
  The verbose option writes the details.
 
 #>
 
-class Verbose : Writer {
+class VerboseDecorator : WriterInterface {
 
     # Properties
 
+    [ValidateNotNull()]
+    hidden [WriterInterface] $m_pDecorated
+
+    [ValidateNotNull()]
     hidden [bool] $m_bVerbose = $false
+
+    [ValidateRange(0, 120)]
     hidden [int] $m_iCount = 0     # Current position in the line
+
+    [ValidateRange(0, 120)]
     hidden [int] $m_iCountMax = 80 # Max '.' or 'X' and 'E' in a line
 
     # Constructors
 
-    Verbose() {}
+    VerboseDecorator() {
+        throw "Usage: [VerboseDecorator]::new( <writer as [Writer\WriterInterface]>, <verbose activated as [bool]>, <max dot per line as [int]> )"
+    }
 
-    Verbose( [bool] $bVerbose = $false, [int] $iCountMax = 80 ) {
-        $this.m_bVerbose = $bVerbose
-        $this.m_iCountMax = $iCountMax
+    VerboseDecorator( [WriterInterface] $writer, [bool] $verbose = $false, [int] $max = 80 ){
+        if( ($writer -eq $null) -or ($verbose -eq $null) -or ($max -eq $null) -or ($max -lt 1) ) {
+            throw "Usage: [VerboseDecorator]::new( <writer as [Writer\WriterInterface]>, <verbose activated as [bool]>, <max dot per line as [int]> )"
+        }
+        $this.m_pDecorated = $writer
+        $this.m_bVerbose = $verbose
+        $this.m_iCountMax = $max
     }
 
     # Class methods
@@ -64,10 +78,10 @@ class Verbose : Writer {
 
         $this.m_iCount += 1
         if( $this.m_iCount -gt $this.m_iCountMax ) {
-            ([Writer]$this).notice( $cValue )
+            $this.m_pDecorated.notice( $cValue )
             $this.m_iCount = 0
         } else {
-            ([Writer]$this).noticel( $cValue )
+            $this.m_pDecorated.noticel( $cValue )
         }
 
     }
@@ -75,7 +89,7 @@ class Verbose : Writer {
     [void] exceptionExpected( [string] $sTxt ) {
 
         if( $this.m_bVerbose ) {
-            ([Writer]$this).success( $sTxt )
+            $this.m_pDecorated.success( $sTxt )
         } else {
             $this.doVerbose( '.' )
         }
@@ -85,7 +99,7 @@ class Verbose : Writer {
     [void] exception( [string] $sTxt ) {
 
         if( $this.m_bVerbose ) {
-            ([Writer]$this).error( $sTxt )
+            $this.m_pDecorated.error( $sTxt )
         } else {
             $this.doVerbose( 'E' )
         }
@@ -97,7 +111,7 @@ class Verbose : Writer {
     [void] error( [string] $sTxt ) {
 
         if( $this.m_bVerbose ) {
-            ([Writer]$this).error( $sTxt )
+            $this.m_pDecorated.error( $sTxt )
         } else {
             $this.doVerbose( 'X' )
         }
@@ -107,7 +121,7 @@ class Verbose : Writer {
     [void] success( [string] $sTxt ) {
 
         if( $this.m_bVerbose ) {
-            ([Writer]$this).success( $sTxt )
+            $this.m_pDecorated.success( $sTxt )
         } else {
             $this.doVerbose( '.' )
         }
@@ -117,7 +131,7 @@ class Verbose : Writer {
     [void] notice( [string] $sTxt ) {
 
         if( $this.m_bVerbose ) {
-            ([Writer]$this).notice( $sTxt )
+            $this.m_pDecorated.notice( $sTxt )
         }
 
     }
@@ -125,7 +139,7 @@ class Verbose : Writer {
     [void] noticel( [string] $sTxt ) {
 
         if( $this.m_bVerbose ) {
-            ([Writer]$this).noticel( $sTxt )
+            $this.m_pDecorated.noticel( $sTxt )
         }
 
     }
@@ -133,7 +147,7 @@ class Verbose : Writer {
     [void] separateLine() {
 
         if( $this.m_bVerbose ) {
-            ([Writer]$this).separateLine()
+            $this.m_pDecorated.separateLine()
         }
 
     }

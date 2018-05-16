@@ -2,7 +2,7 @@
 
 .VERSION 1.2.0
 
-.GUID 73c97ada-0004-4f07-b18f-e1a38ac3a132
+.GUID 73c97ada-0006-4f07-b18f-e1a38ac3a132
 
 .AUTHOR Olivier Jullien
 
@@ -20,7 +20,7 @@
 
 .EXTERNALMODULEDEPENDENCIES
 
-.REQUIREDSCRIPTS src\sys\inc\Writer\Output\OutputAbstract.ps1
+.REQUIREDSCRIPTS src\sys\inc\Writer\Interface.ps1, src\sys\inc\Writer\Output\OutputAbstract.ps1
 
 .EXTERNALSCRIPTDEPENDENCIES
 
@@ -39,10 +39,11 @@ Require .NET Core
 
 #>
 
-class Writer {
+class Writer : WriterInterface {
 
     # Properties
 
+    [ValidateCount(0,2)]
     hidden [OutputAbstract[]] $aOutputs = @()
 
     # Constructors

@@ -20,7 +20,7 @@
 
 .EXTERNALMODULEDEPENDENCIES
 
-.REQUIREDSCRIPTS src\sys\inc\Writer, src\sys\inc\Exec\Program.ps1
+.REQUIREDSCRIPTS src\sys\inc\Writer\autoload.ps1, src\sys\inc\Exec\Program.ps1
 
 .EXTERNALSCRIPTDEPENDENCIES
 
@@ -50,29 +50,12 @@ $ErrorActionPreference = "Stop"
 $PSDefaultParameterValues['*:ErrorAction']='Stop'
 
 # -----------------------------------------------------------------------------
-# Load sys files
+# Load common sys files
 # -----------------------------------------------------------------------------
 
 . ("$PWD\..\src\sys\cfg\constant.ps1")
-. ("$m_DIR_SYS\inc\Writer\Output\OutputAbstract.ps1")
-. ("$m_DIR_SYS\inc\Writer\Writer.ps1")
-. ("$m_DIR_SYS\inc\Writer\Verbose.ps1")
-
-try {
-    $pWriter = [Verbose]::new( $verbose.IsPresent, 80 )
-    if( -Not $bequiet.IsPresent ) {
-        . ("$m_DIR_SYS\inc\Writer\Output\OutputHost.ps1")
-        $pWriter.addOutput( [OutputHost]::new() )
-    }
-    if( $logtofile.IsPresent ) {
-        . ("$m_DIR_SYS\inc\Writer\Output\OutputLog.ps1")
-        $pWriter.addOutput( [OutputLog]::new( $m_DIR_LOG_PATH ) )
-    }
-}
-catch {
-    $pWriter.error( "ERROR: Cannot load Writer module: $_" )
-    Exit
-}
+. ("$m_DIR_SCRIPT\test\sys\cfg\constant.ps1")
+. ("$m_DIR_SYS\inc\Writer\autoload.ps1")
 
 # -----------------------------------------------------------------------------
 # Load Filter\Path files
@@ -98,92 +81,92 @@ catch {
 # Test
 # ------------------------------------------------------------------------------
 
-$pWriter.separateLine()
-$pWriter.notice( 'Testing: setProgramPath($null)' )
+$pWriterDecorated.separateLine()
+$pWriterDecorated.notice( 'Testing: setProgramPath($null)' )
 
 try {
     $null = [Program]::new().setProgramPath($null)
-    $pWriter.error( 'setProgramPath shall raised an exception' )
+    $pWriterDecorated.error( 'setProgramPath shall raised an exception' )
 } catch {
-    $pWriter.exceptionExpected( "setProgramPath raised an expected exception:  $_" )
+    $pWriterDecorated.exceptionExpected( "setProgramPath raised an expected exception:  $_" )
 }
 
-$pWriter.separateLine()
-$pWriter.notice( 'Testing: setProgramPath( "does\not\exist" )' )
+$pWriterDecorated.separateLine()
+$pWriterDecorated.notice( 'Testing: setProgramPath( "does\not\exist" )' )
 
 try {
     $null = [Program]::new().setProgramPath( [Path]::new( 'C:\Program Files\PowerShell\6.0.2\doesnotexist.exe' ) )
-    $pWriter.error( 'setProgramPath shall raised an exception' )
+    $pWriterDecorated.error( 'setProgramPath shall raised an exception' )
 } catch {
-    $pWriter.exceptionExpected( "setProgramPath raised an expected exception:  $_" )
+    $pWriterDecorated.exceptionExpected( "setProgramPath raised an expected exception:  $_" )
 }
 
-$pWriter.separateLine()
-$pWriter.notice( 'Testing: addArgument( $null )' )
+$pWriterDecorated.separateLine()
+$pWriterDecorated.notice( 'Testing: addArgument( $null )' )
 
 try {
     $null = [Program]::new().addArgument( $null )
-    $pWriter.error( 'addArgument shall raised an exception' )
+    $pWriterDecorated.error( 'addArgument shall raised an exception' )
 } catch {
-    $pWriter.exceptionExpected( "addArgument raised an expected exception:  $_" )
+    $pWriterDecorated.exceptionExpected( "addArgument raised an expected exception:  $_" )
 }
 
-$pWriter.separateLine()
-$pWriter.notice( 'Testing: addArgument( " " )' )
+$pWriterDecorated.separateLine()
+$pWriterDecorated.notice( 'Testing: addArgument( " " )' )
 
 try {
     $null = [Program]::new().addArgument( " " )
-    $pWriter.error( 'addArgument shall raised an exception' )
+    $pWriterDecorated.error( 'addArgument shall raised an exception' )
 } catch {
-    $pWriter.exceptionExpected( "addArgument raised an expected exception:  $_" )
+    $pWriterDecorated.exceptionExpected( "addArgument raised an expected exception:  $_" )
 }
 
-$pWriter.separateLine()
-$pWriter.notice( 'Testing: setArgument( $null )' )
+$pWriterDecorated.separateLine()
+$pWriterDecorated.notice( 'Testing: setArgument( $null )' )
 
 try {
     $null = [Program]::new().setArgument( $null )
-    $pWriter.error( 'setArgument shall raised an exception' )
+    $pWriterDecorated.error( 'setArgument shall raised an exception' )
 } catch {
-    $pWriter.exceptionExpected( "setArgument raised an expected exception:  $_" )
+    $pWriterDecorated.exceptionExpected( "setArgument raised an expected exception:  $_" )
 }
 
-$pWriter.separateLine()
+$pWriterDecorated.separateLine()
 [string[]]$aArguments = @( '-h', '-nol' )
 [string]$sArguments = $aArguments -join ' '
 [string]$sProgramPath = 'C:\Program Files\PowerShell\6.0.2\pwsh.exe'
-$pWriter.notice( "Testing: `"$sProgramPath $sArguments`"" )
+$pWriterDecorated.notice( "Testing: `"$sProgramPath $sArguments`"" )
 
 try {
     $pPath = [Program]::new().setProgramPath( [Path]::new( $sProgramPath ) ).addArgument( '-h' ).setArgument( $aArguments )
 } catch {
-    $pWriter.exception( "[Program]::new() raised an exception:  $_" )
+    $pWriterDecorated.exception( "[Program]::new() raised an exception:  $_" )
     Exit
 }
 
 [string]$sResult = $pPath.getProgramPath()
 $sBuffer = "`tgetProgramPath: '$sResult' => '$sProgramPath'"
 if( $sResult -eq $sProgramPath ) {
-    $pWriter.success( $sBuffer )
+    $pWriterDecorated.success( $sBuffer )
 } else {
-    $pWriter.error( $sBuffer )
+    $pWriterDecorated.error( $sBuffer )
 }
 
 $sResult = $pPath.getArgument()
 $sBuffer = "`tgetArgument: '$sResult' => '$sArguments'"
 if( $sResult -eq $sArguments ) {
-    $pWriter.success( $sBuffer )
+    $pWriterDecorated.success( $sBuffer )
 } else {
-    $pWriter.error( $sBuffer )
+    $pWriterDecorated.error( $sBuffer )
 
 }
 
 [string[]]$aResult = $pPath.getArguments()
 $sBuffer = "`tgetArguments: '$aResult' => '$aArguments'"
 if( $( $aResult -join ' ' ) -eq $sArguments ) {
-    $pWriter.success( $sBuffer )
+    $pWriterDecorated.success( $sBuffer )
 } else {
-    $pWriter.error( $sBuffer )
+    $pWriterDecorated.error( $sBuffer )
 
 }
 

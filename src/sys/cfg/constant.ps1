@@ -42,11 +42,13 @@ Require .NET Core
 # -----------------------------------------------------------------------------
 # Date
 # -----------------------------------------------------------------------------
+
 New-Variable -Name m_DATE -Force -Option Constant,AllScope -Value (Get-Date -format 'FileDateTime')
 
 # -----------------------------------------------------------------------------
 # Main Directories
 # -----------------------------------------------------------------------------
+
 # Directory holds scripts
 New-Variable -Name m_DIR_SCRIPT -Force -Option Constant,AllScope -Value (get-item $PWD).Parent.Fullname
 # Directory holds system files

@@ -20,7 +20,7 @@
 
 .EXTERNALMODULEDEPENDENCIES
 
-.REQUIREDSCRIPTS src\sys\inc\Writer, src\sys\inc\Filter\Path.ps1, src\sys\inc\Filter\Dir.ps1, src\sys\inc\Drive\Drive.ps1, test\sys\inc\Drive\Drive.ps1
+.REQUIREDSCRIPTS src\sys\inc\Writer\autoload.ps1, src\sys\inc\Filter\Path.ps1, src\sys\inc\Filter\Dir.ps1, src\sys\inc\Drive\Drive.ps1, test\sys\inc\Drive\Drive.ps1
 
 .EXTERNALSCRIPTDEPENDENCIES
 
@@ -50,32 +50,15 @@ $ErrorActionPreference = "Stop"
 $PSDefaultParameterValues['*:ErrorAction']='Stop'
 
 # -----------------------------------------------------------------------------
-# Load sys files
+# Load common sys files
 # -----------------------------------------------------------------------------
 
 . ("$PWD\..\src\sys\cfg\constant.ps1")
-. ("$m_DIR_SYS\inc\Writer\Output\OutputAbstract.ps1")
-. ("$m_DIR_SYS\inc\Writer\Writer.ps1")
-. ("$m_DIR_SYS\inc\Writer\Verbose.ps1")
-
-try {
-    $pWriter = [Verbose]::new( $verbose.IsPresent, 80 )
-    if( -Not $bequiet.IsPresent ) {
-        . ("$m_DIR_SYS\inc\Writer\Output\OutputHost.ps1")
-        $pWriter.addOutput( [OutputHost]::new() )
-    }
-    if( $logtofile.IsPresent ) {
-        . ("$m_DIR_SYS\inc\Writer\Output\OutputLog.ps1")
-        $pWriter.addOutput( [OutputLog]::new( $m_DIR_LOG_PATH ) )
-    }
-}
-catch {
-    $pWriter.error( "ERROR: Cannot load Writer module: $_" )
-    Exit
-}
+. ("$m_DIR_SCRIPT\test\sys\cfg\constant.ps1")
+. ("$m_DIR_SYS\inc\Writer\autoload.ps1")
 
 # -----------------------------------------------------------------------------
-# Load Filter\Path files
+# Load Filter files
 # -----------------------------------------------------------------------------
 
 . ("$m_DIR_SYS\inc\Filter\FilterAbstract.ps1")
@@ -100,14 +83,14 @@ catch {
 
 foreach( $item in $aTestDataCollection ) {
 
-    $pWriter.separateLine()
-    $pWriter.notice( "Testing: '$( $item.theInput.thePath )' on '$( $item.theInput.label )'" )
+    $pWriterDecorated.separateLine()
+    $pWriterDecorated.notice( "Testing: '$( $item.theInput.thePath )' on '$( $item.theInput.label )'" )
 
     try {
         $pPath = [Path]::new( $item.theInput.thePath )
     }
     catch {
-        $pWriter.error( "ERROR: Cannot load Filter\Path module: $_" )
+        $pWriterDecorated.error( "ERROR: Cannot load Filter\Path module: $_" )
         Exit
     }
 
@@ -115,7 +98,7 @@ foreach( $item in $aTestDataCollection ) {
         $pDrive = [Drive]::new( $pPath, $item.theInput.label )
     }
     catch {
-        $pWriter.error( "Cannot load Drive\Drive module: $_" )
+        $pWriterDecorated.error( "Cannot load Drive\Drive module: $_" )
         Exit
     }
 
@@ -124,18 +107,18 @@ foreach( $item in $aTestDataCollection ) {
         [string] $sResult = $pDrive.getDriveLetter()
     } catch {
         if( $item.theExpected.Exception ) {
-            $pWriter.exceptionExpected( "getDriveLetter raised an expected exception:  $_" )
+            $pWriterDecorated.exceptionExpected( "getDriveLetter raised an expected exception:  $_" )
         } else {
-            $pWriter.exception( "getDriveLetter raised an exception:  $_" )
+            $pWriterDecorated.exception( "getDriveLetter raised an exception:  $_" )
         }
         continue
     }
 
     [string] $sBuffer = "`tgetDriveLetter: '$sResult' => '$( $item.theExpected.driveletter )'"
     if( $sResult -eq $item.theExpected.driveletter ) {
-        $pWriter.success( $sBuffer )
+        $pWriterDecorated.success( $sBuffer )
     } else {
-        $pWriter.error( $sBuffer )
+        $pWriterDecorated.error( $sBuffer )
     }
 
     # getSubFolder
@@ -143,18 +126,18 @@ foreach( $item in $aTestDataCollection ) {
         $sResult = $pDrive.getSubFolder()
     } catch {
         if( $item.theExpected.Exception ) {
-            $pWriter.exceptionExpected( "getSubFolder raised an expected exception:  $_" )
+            $pWriterDecorated.exceptionExpected( "getSubFolder raised an expected exception:  $_" )
         } else {
-            $pWriter.exception( "getSubFolder raised an exception:  $_" )
+            $pWriterDecorated.exception( "getSubFolder raised an exception:  $_" )
         }
         continue
     }
 
     $sBuffer = "`tgetSubFolder: '$sResult' => '$( $item.theExpected.subfolder )'"
     if( $sResult -eq $item.theExpected.subfolder ) {
-        $pWriter.success( $sBuffer )
+        $pWriterDecorated.success( $sBuffer )
     } else {
-        $pWriter.error( $sBuffer )
+        $pWriterDecorated.error( $sBuffer )
     }
 
     # getVolumeLabel
@@ -162,18 +145,18 @@ foreach( $item in $aTestDataCollection ) {
         $sResult = $pDrive.getVolumeLabel()
     } catch {
         if( $item.theExpected.Exception ) {
-            $pWriter.exceptionExpected( "getVolumeLabel raised an expected exception:  $_" )
+            $pWriterDecorated.exceptionExpected( "getVolumeLabel raised an expected exception:  $_" )
         } else {
-            $pWriter.exception( "getVolumeLabel raised an exception:  $_" )
+            $pWriterDecorated.exception( "getVolumeLabel raised an exception:  $_" )
         }
         continue
     }
 
     $sBuffer = "`tgetVolumeLabel: '$sResult' => '$( $item.theExpected.volumelabel )'"
     if( $sResult -eq $item.theExpected.volumelabel ) {
-        $pWriter.success( $sBuffer )
+        $pWriterDecorated.success( $sBuffer )
     } else {
-        $pWriter.error( $sBuffer )
+        $pWriterDecorated.error( $sBuffer )
     }
 
     # testPath
@@ -181,18 +164,18 @@ foreach( $item in $aTestDataCollection ) {
         [bool] $bResult = $pDrive.testPath()
     } catch {
         if( $item.theExpected.Exception ) {
-            $pWriter.exceptionExpected( "testPath raised an expected exception:  $_" )
+            $pWriterDecorated.exceptionExpected( "testPath raised an expected exception:  $_" )
         } else {
-            $pWriter.exception( "testPath raised an exception:  $_" )
+            $pWriterDecorated.exception( "testPath raised an exception:  $_" )
         }
         continue
     }
 
     $sBuffer = "`ttestPath: '$([string]$bResult)' => '$( $item.theExpected.testPath )'"
     if( $bResult -eq $item.theExpected.testPath ) {
-        $pWriter.success( $sBuffer )
+        $pWriterDecorated.success( $sBuffer )
     } else {
-        $pWriter.error( $sBuffer )
+        $pWriterDecorated.error( $sBuffer )
     }
 
     # isReady
@@ -200,23 +183,23 @@ foreach( $item in $aTestDataCollection ) {
         $bResult = $pDrive.isReady()
     } catch {
         if( $item.theExpected.Exception ) {
-            $pWriter.exceptionExpected( "isReady raised an expected exception:  $_" )
+            $pWriterDecorated.exceptionExpected( "isReady raised an expected exception:  $_" )
         } else {
-            $pWriter.exception( "isReady raised an exception:  $_" )
+            $pWriterDecorated.exception( "isReady raised an exception:  $_" )
         }
         continue
     }
 
     $sBuffer = "`tisReady: '$([string]$bResult)' => '$( $item.theExpected.isReady )'"
     if( $bResult -eq $item.theExpected.isReady ) {
-        $pWriter.success( $sBuffer )
+        $pWriterDecorated.success( $sBuffer )
     } else {
-        $pWriter.error( $sBuffer )
+        $pWriterDecorated.error( $sBuffer )
     }
 
     # getTrace
-    $pWriter.notice( "Trace: `t`t" + $pDrive.getTrace() )
-    $pWriter.notice( "ToString: `t" + [string]$pDrive )
+    $pWriterDecorated.notice( "Trace: `t`t" + $pDrive.getTrace() )
+    $pWriterDecorated.notice( "ToString: `t" + [string]$pDrive )
 }
 
 $ErrorActionPreference = "Continue"

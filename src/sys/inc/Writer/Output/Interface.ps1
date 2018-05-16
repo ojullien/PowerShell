@@ -2,7 +2,7 @@
 
 .VERSION 1.2.0
 
-.GUID 73c97ada-0003-4f07-b18f-e1a38ac3a132
+.GUID 73c97ada-0001-4f07-b18f-e1a38ac3a132
 
 .AUTHOR Olivier Jullien
 
@@ -20,7 +20,7 @@
 
 .EXTERNALMODULEDEPENDENCIES
 
-.REQUIREDSCRIPTS src\sys\inc\Writer\Output\OutputAbstract.ps1
+.REQUIREDSCRIPTS
 
 .EXTERNALSCRIPTDEPENDENCIES
 
@@ -35,20 +35,29 @@ Require .NET Core
 <#
 
 .DESCRIPTION
- Log File output class
+ Output interface
 
 #>
 
-class OutputLog : OutputAbstract {
+class OutputInterface {
 
     # Properties
 
-    hidden [ValidateNotNullOrEmpty()] [string] $sPath
-
     # Constructors
 
-    OutputLog( [string] $sPath ) {
-        $this.sPath = $sPath
+    OutputInterface() {
+    <#
+    .SYNOPSIS
+        Abstract constructor. This class must be overridden.
+    .DESCRIPTION
+        See synopsis.
+    #>
+        $oType = $this.GetType()
+
+        if( $oType -eq [OutputInterface] )
+        {
+            throw("Class $oType must be inherited")
+        }
     }
 
     # Methods
@@ -56,7 +65,8 @@ class OutputLog : OutputAbstract {
     [void] error( [string] $sTxt ) {
     <#
     .SYNOPSIS
-        If this writer is activated then writes a message to the file.
+        Writes an error type message.
+        This method must be overridden by a child class.
     .DESCRIPTION
         See synopsis.
     .EXAMPLE
@@ -64,15 +74,14 @@ class OutputLog : OutputAbstract {
     .PARAMETER sTxt
         The text to write.
     #>
-        if( $this.bActivated ) {
-            Add-Content -Path $this.sPath -Value "ERROR: $sTxt"
-        }
+        throw("This method must be overridden")
     }
 
     [void] success( [string] $sTxt ) {
     <#
     .SYNOPSIS
-        If this writer is activated then writes a message to the file.
+        Writes a success type message.
+        This method must be overridden by a child class.
     .DESCRIPTION
         See synopsis.
     .EXAMPLE
@@ -80,15 +89,14 @@ class OutputLog : OutputAbstract {
     .PARAMETER sTxt
         The text to write.
     #>
-        if( $this.bActivated ) {
-            Add-Content -Path $this.sPath -Value "SUCCESS: $sTxt"
-        }
+        throw("This method must be overridden")
     }
 
     [void] notice( [string] $sTxt ) {
     <#
     .SYNOPSIS
-        If this writer is activated then writes a message to the file.
+        Writes a message.
+        This method must be overridden by a child class.
     .DESCRIPTION
         See synopsis.
     .EXAMPLE
@@ -96,15 +104,14 @@ class OutputLog : OutputAbstract {
     .PARAMETER sTxt
         The text to write.
     #>
-        if( $this.bActivated ) {
-            Add-Content -Path $this.sPath -Value $sTxt
-        }
+        throw("This method must be overridden")
     }
 
     [void] noticel( [string] $sTxt ) {
     <#
     .SYNOPSIS
-        If this writer is activated then writes a message to the file and does not go to the line.
+        Writes a message with no new line.
+        This method must be overridden by a child class.
     .DESCRIPTION
         See synopsis.
     .EXAMPLE
@@ -112,9 +119,7 @@ class OutputLog : OutputAbstract {
     .PARAMETER sTxt
         The text to write.
     #>
-        if( $this.bActivated ) {
-            Add-Content -Path $this.sPath -NoNewline $sTxt
-        }
+        throw("This method must be overridden")
     }
 
 }

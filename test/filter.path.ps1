@@ -20,7 +20,7 @@
 
 .EXTERNALMODULEDEPENDENCIES
 
-.REQUIREDSCRIPTS src\sys\inc\Writer, src\sys\inc\Filter\Path.ps1, test\sys\inc\Filter\Path.ps1
+.REQUIREDSCRIPTS src\sys\inc\Writer\Verbose.ps1, src\sys\inc\Filter\Path.ps1, test\sys\inc\Filter\Path.ps1
 
 .EXTERNALSCRIPTDEPENDENCIES
 
@@ -50,29 +50,12 @@ $ErrorActionPreference = "Stop"
 $PSDefaultParameterValues['*:ErrorAction']='Stop'
 
 # -----------------------------------------------------------------------------
-# Load sys files
+# Load common sys files
 # -----------------------------------------------------------------------------
 
 . ("$PWD\..\src\sys\cfg\constant.ps1")
-. ("$m_DIR_SYS\inc\Writer\Output\OutputAbstract.ps1")
-. ("$m_DIR_SYS\inc\Writer\Writer.ps1")
-. ("$m_DIR_SYS\inc\Writer\Verbose.ps1")
-
-try {
-    $pWriter = [Verbose]::new( $verbose.IsPresent, 80 )
-    if( -Not $bequiet.IsPresent ) {
-        . ("$m_DIR_SYS\inc\Writer\Output\OutputHost.ps1")
-        $pWriter.addOutput( [OutputHost]::new() )
-    }
-    if( $logtofile.IsPresent ) {
-        . ("$m_DIR_SYS\inc\Writer\Output\OutputLog.ps1")
-        $pWriter.addOutput( [OutputLog]::new( $m_DIR_LOG_PATH ) )
-    }
-}
-catch {
-    $pWriter.error( "ERROR: Cannot load Writer module: $_" )
-    Exit
-}
+. ("$m_DIR_SCRIPT\test\sys\cfg\constant.ps1")
+. ("$m_DIR_SYS\inc\Writer\autoload.ps1")
 
 # -----------------------------------------------------------------------------
 # Load Filter\Path files
@@ -85,7 +68,7 @@ try {
     $pPath = [Path]::new()
 }
 catch {
-    $pWriter.error( "ERROR: Cannot load Filter\Path module: $_" )
+    $pWriterDecorated.error( "ERROR: Cannot load Filter\Path module: $_" )
     Exit
 }
 
@@ -101,61 +84,61 @@ catch {
 
 foreach( $item in $aTestDataCollection ) {
 
-    $pWriter.separateLine()
-    $pWriter.notice( "Testing: '$( $item.theInput )'" )
+    $pWriterDecorated.separateLine()
+    $pWriterDecorated.notice( "Testing: '$( $item.theInput )'" )
 
     try {
         # isValid use doFilter
         [bool] $bResult = $pPath.isValid( $item.theInput )
     } catch {
         if( $item.theExpected.Exception ) {
-            $pWriter.exceptionExpected( "doFilter raised an expected exception:  $_" )
+            $pWriterDecorated.exceptionExpected( "doFilter raised an expected exception:  $_" )
         } else {
-            $pWriter.exception( "doFilter raised an exception:  $_" )
+            $pWriterDecorated.exception( "doFilter raised an exception:  $_" )
         }
         continue
     }
 
     $sBuffer = "`tdirectoryname: '$( $pPath.getDirectoryName() )' => '$( $item.theExpected.directoryname )'"
     if( $pPath.getDirectoryName() -eq $item.theExpected.directoryname ) {
-        $pWriter.success( $sBuffer )
+        $pWriterDecorated.success( $sBuffer )
     } else {
-        $pWriter.error( $sBuffer )
+        $pWriterDecorated.error( $sBuffer )
     }
 
     $sBuffer = "`tfilename: '$( $pPath.getFilename() )' => '$( $item.theExpected.filename )'"
     if( $pPath.getFilename() -eq $item.theExpected.filename ) {
-        $pWriter.success( $sBuffer )
+        $pWriterDecorated.success( $sBuffer )
     } else {
-        $pWriter.error( $sBuffer )
+        $pWriterDecorated.error( $sBuffer )
     }
 
     $sBuffer = "`tbasename: '$( $pPath.getBasename() )' => '$( $item.theExpected.basename )'"
     if( $pPath.getBasename() -eq $item.theExpected.basename ) {
-        $pWriter.success( $sBuffer )
+        $pWriterDecorated.success( $sBuffer )
     } else {
-        $pWriter.error( $sBuffer )
+        $pWriterDecorated.error( $sBuffer )
     }
 
     $sBuffer = "`textension: '$( $pPath.getExtension() )' => '$( $item.theExpected.extension )'"
     if( $pPath.getExtension() -eq $item.theExpected.extension ) {
-        $pWriter.success( $sBuffer )
+        $pWriterDecorated.success( $sBuffer )
     } else {
-        $pWriter.error( $sBuffer )
+        $pWriterDecorated.error( $sBuffer )
     }
 
     $sBuffer = "`tpathroot: '$( $pPath.getPathRoot() )' => '$( $item.theExpected.pathroot )'"
     if( $pPath.getPathRoot() -eq $item.theExpected.pathroot ) {
-        $pWriter.success( $sBuffer )
+        $pWriterDecorated.success( $sBuffer )
     } else {
-        $pWriter.error( $sBuffer )
+        $pWriterDecorated.error( $sBuffer )
     }
 
     $sBuffer = "`tisValid: '$([string]$bResult)' => '$( $item.theExpected.isValid )'"
     if( $bResult -eq $item.theExpected.isValid ) {
-        $pWriter.success( $sBuffer )
+        $pWriterDecorated.success( $sBuffer )
     } else {
-        $pWriter.error( $sBuffer )
+        $pWriterDecorated.error( $sBuffer )
     }
 
 }

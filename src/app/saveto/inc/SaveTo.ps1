@@ -44,33 +44,28 @@ class SaveTo {
     # Properties
 
     [ValidateNotNull()]
-    hidden [Writer] $m_pWriter
-
-    [ValidateNotNull()]
     hidden [Drive] $m_pSource
 
     [ValidateNotNull()]
     hidden [Drive] $m_pDestination
 
-    [ValidateNotNullOrEmpty()]
-    hidden [string] $m_sLogPath = 'c:\Temp'
+    [ValidateNotNull()]
+    hidden [Path] $m_pDefaultLogDir
 
-    [ValidateNotNullOrEmpty()]
-    hidden [string] $m_sContigerLogName = "contig"
-
-    [ValidateNotNullOrEmpty()]
-    hidden [string] $m_sRobocopyLogName = "robocopy"
+    hidden [Path] $m_pCurrentLog
 
     # Constructors
 
-    SaveTo ( [string] $sPath ) {
-        if( [string]::IsNullOrWhiteSpace( $sPath )) {
-            throw "Usage: [SaveTo]::new( <log path as string> )"
+    SaveTo() {
+        throw "Usage: [SaveTo]::new( <valid log directory as [Filter\Path]> )"
+    }
+
+    SaveTo ( [Path] $logdir ) {
+        if( ($logdir -eq $null) -or (![Dir]::new().exists( $logdir )) ) {
+            throw "Usage: [SaveTo]::new( <valid log directory as [Filter\Path]> )"
         }
-        if( -Not [Dir]::new().exists( [Path]::new( $sPath ) )) {
-            throw "The log path must be valid"
-        }
-        $this.m_sLogPath = $sPath.Trim()
+        $this.m_pDefaultLogDir = $logdir
+        $this.m_pCurrentLog = $null
     }
 
     # Class methods
@@ -79,112 +74,80 @@ class SaveTo {
         return "[SaveTo] Configuration`n`tSource: $($this.m_pSource)`n`tDestination: $($this.m_pDestination)"
     }
 
-    [SaveTo] setWriter( [Writer] $pWriter ) {
+    [SaveTo] setSource( [Path] $path, [string]$label ) {
     <#
     .SYNOPSIS
-        Set the writer.
+        Set the source path. Throw an error if the path is not valid or the drive is not ready.
     .DESCRIPTION
         See synopsis.
     .EXAMPLE
-        $pSaveTo.setWriter( <instance of Writer> )
-    .PARAMETER pWriter
-        An instance of Writer.
+        [SaveTo]$instance.setSource( <source as [Filter\Path]> )
+    .PARAMETER path
+        An instance of Filter\Path.
+    .PARAMETER label
+        Drive label as string
     #>
-        $this.m_pWriter = $pWriter
+        # Initialize
+        $this.m_pCurrentLog = $null
+
+        # Check parameters
+        if( ($path -eq $null) -or [string]::IsNullOrWhiteSpace( $label ) ) {
+            throw 'Usage: [SaveTo]$instance.setSource( <source as [Filter\Path]>; <drive label as string> )'
+        }
+
+        # Build source
+        $this.m_pSource = [Drive]::new( $path, $label )
+        if( !$this.m_pSource.isReady() -or !$this.m_pSource.testPath() ){
+            throw 'SaveTo: Source is not valid or the drive is not ready.'
+        }
+
+        # Build log path
+        $this.m_pCurrentLog = [Path]::new( [string]$this.m_pDefaultLogDir + [System.IO.Path]::DirectorySeparatorChar + 'robocopy-' + $path.getFilename() + ".log"  )
+        if( !$this.m_pCurrentLog.isValid() ){
+            throw 'SaveTo: The log path is not valid.'
+        }
+
+        # Delete old log file
+        if( [File]::new().exists( $this.m_pCurrentLog ) ){
+            Remove-Item "$([string]$this.m_pCurrentLog)"
+        }
+
         return $this
     }
 
-    [SaveTo] setSource( [Drive] $pDrive ) {
+    [SaveTo] setDestination( [Path] $path, [string]$label ) {
     <#
     .SYNOPSIS
-        Set the source drive.
+        Set the destination path. Throw an error if the path is not valid or the drive is not ready.
     .DESCRIPTION
         See synopsis.
     .EXAMPLE
-        $pSaveTo.setSource( <instance of Drive> )
-    .PARAMETER pDrive
-        An instance of Drive.
+        [SaveTo]$instance.setDestination( <destination as [Filter\Path]> )
+    .PARAMETER path
+        An instance of Filter\Path.
+    .PARAMETER label
+        Drive label as string
     #>
-        $this.m_pSource = $pDrive
+        # Check parameters
+        if( ($path -eq $null) -or [string]::IsNullOrWhiteSpace( $label ) ) {
+            throw 'Usage: [SaveTo]$instance.setDestination( <destination as [Filter\Path]>; <drive label as string> )'
+        }
+
+        # Build destination
+        $this.m_pDestination = [Drive]::new( $path, $label )
+        if( !$this.m_pDestination.isReady() ){
+            throw 'SaveTo: Destination drive is not ready.'
+        }
+
+        # Create destination
+        if( ![Dir]::new().exists( $this.m_pDestination ) ){
+            New-Item -ItemType "directory" -Force -Path "$([string]$this.m_pDestination)" | Out-Null
+        }
+
         return $this
     }
 
-    [SaveTo] setDestination( [Drive] $pDrive ) {
-    <#
-    .SYNOPSIS
-        Set the destination drive.
-    .DESCRIPTION
-        See synopsis.
-    .EXAMPLE
-        $pSaveTo.setDestination( <instance of Drive> )
-    .PARAMETER pDrive
-        An instance of Drive.
-    #>
-        $this.m_pDestination = $pDrive
-        return $this
-    }
-
-    [void] cleanLog() {
-    <#
-    .SYNOPSIS
-        Deletes old log files.
-    .DESCRIPTION
-        See synopsis.
-    .EXAMPLE
-        $pSaveTo.cleanLog()
-    #>
-        # Log dir must exist
-        if( -Not [Dir]::new().exists( [Path]::new( $this.m_sLogPath ) )) {
-            throw "The log path must be valid"
-        }
-        # Delete
-        foreach( $sName in @( $this.m_sRobocopyLogName, $this.m_sContigerLogName )) {
-            $this.m_pWriter.notice( "Cleaning '$sName-*.log' files from $($this.m_sLogPath)" )
-            Remove-Item "$($this.m_sLogPath)\$sName-*.log"
-        }
-    }
-
-    [bool] isReadySource() {
-    <#
-    .SYNOPSIS
-        Return true if the source drive is ready.
-    .DESCRIPTION
-        See synopsis.
-    .EXAMPLE
-        $pSaveTo.isReadySource()
-    #>
-        [bool] $bReturn = $false
-        if( $this.m_pSource -eq $null ) {
-            $this.m_pWriter.error( "Source is not set." )
-        } elseif( $this.m_pSource.isReady() -and $this.m_pSource.testPath() ) {
-                $bReturn = $true
-        } else {
-            $this.m_pWriter.error( "$($this.m_pSource) is missing" )
-        }
-        return $bReturn
-    }
-
-    [bool] isReadyDestination() {
-    <#
-    .SYNOPSIS
-        Return true if the destination drive is ready.
-    .DESCRIPTION
-        See synopsis.
-    .EXAMPLE
-        $pSaveTo.isReadyDestination()
-    #>
-        [bool] $bReturn = $false
-        if( $this.m_pDestination -eq $null ) {
-            $this.m_pWriter.error( "Destination is not set." )
-        } elseif( $this.m_pDestination.isReady() -and $this.m_pDestination.testPath() ) {
-                $bReturn = $true
-        } else {
-            $this.m_pWriter.error( "$($this.m_pDestination) is missing" )
-        }
-        return $bReturn
-    }
-
-    [bool] robocopy( [string] $sFolder ) {
+    [bool] robocopy() {
     <#
     .SYNOPSIS
         Robust file/directory copy. The source and the destination must be set.
@@ -194,12 +157,19 @@ class SaveTo {
         See synopsis.
     .EXAMPLE
         $pSaveTo.robocopy( <folder name as string> )
-    .PARAMETER sFolder
-        The folder name
     #>
-        if( [string]::IsNullOrWhiteSpace( $sFolder )) {
-            throw "Usage: [SaveTo]::robocopy( <folder name as string> )"
+
+        # Parameters
+        if( ($source -eq $null) -or ($destination -eq $null) ) {
+            throw 'Usage: [SaveTo]$instance.robocopy( <source as [Filter\Path]]>, <destination as [Filter\Path]]> )'
         }
+
+        # Log
+        [Path] $pLog = [Path]::new( [string]$this.m_pLogPath + [System.IO.Path]::DirectorySeparatorChar + $source.getFilename()  )
+
+
+
+
 
         [bool] $bReturn = $false
         $sFolder = $sFolder.Trim().Trim('\')
