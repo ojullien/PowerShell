@@ -25,7 +25,7 @@
 .EXTERNALSCRIPTDEPENDENCIES src\sys\inc\Writer\Output\Interface.ps1
 
 .RELEASENOTES
-Date: 20180501
+Date: 20180518
 Require Powershell Version: 6.0.2
 Require .NET Framework 4.7
 Require .NET Core

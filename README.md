@@ -28,7 +28,7 @@ Each file contains code for one class. It display a dot for a successfull test, 
 Use the -verbose option to display all the details of the tests.
 
 ```powershell
-PS C:\PowerShell\test> .\filter.path.ps1 [options]
+PS C:\PowerShell\test> .\filter.ps1 [options]
 
 Options:
 
