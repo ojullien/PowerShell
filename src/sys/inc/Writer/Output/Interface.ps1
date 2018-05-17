@@ -56,7 +56,7 @@ class OutputInterface {
 
         if( $oType -eq [OutputInterface] )
         {
-            throw("Class $oType must be inherited")
+            throw("Interface $oType must be inherited")
         }
     }
 

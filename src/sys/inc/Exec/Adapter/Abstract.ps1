@@ -35,17 +35,21 @@ Require .NET Core
 <#
 
 .DESCRIPTION
- Adapter abstract and interface class for Exec programs
+ Adapter abstract class
 
 #>
 
-class ExecAdapterAbstract {
+class ExecAdapterAbstract : ExecAdapterInterface {
 
     # Properties
 
     [ValidateNotNull()]
     [Program] $m_pProgram
+
+    [ValidateNotNull()]
     [bool] $m_bSaveOutput = $false
+
+    [ValidateNotNull()]
     [string] $m_sOutput = ''
 
     # Constructors
@@ -61,34 +65,34 @@ class ExecAdapterAbstract {
 
         if( $oType -eq [ExecAdapterAbstract] )
         {
-            throw("Class $oType must be inherited")
+            throw("Abstract class $oType must be inherited")
         }
     }
 
     # Class methods
 
-    [ExecAdapterAbstract] noOutput() {
+    [ExecAdapterInterface] noOutput() {
     <#
     .SYNOPSIS
         Does not allow the read of the output stream.
     .DESCRIPTION
         See synopsis.
     .EXAMPLE
-        $instance.noOutput()
+        [ExecAdapterInterface]$instance.noOutput()
     #>
         $this.m_bSaveOutput = $false
         $this.m_sOutput = ''
         return $this
     }
 
-    [ExecAdapterAbstract] saveOutput() {
+    [ExecAdapterInterface] saveOutput() {
     <#
     .SYNOPSIS
         Allows the read of the output stream.
     .DESCRIPTION
         See synopsis.
     .EXAMPLE
-        $instance.saveOutput()
+        [ExecAdapterInterface]$instance.saveOutput()
     #>
         $this.m_bSaveOutput = $true
         $this.m_sOutput = ''
@@ -114,7 +118,7 @@ class ExecAdapterAbstract {
     .DESCRIPTION
         See synopsis.
     .EXAMPLE
-        $instance.getOutput()
+        [ExecAdapterInterface]$instance.getOutput()
     #>
         $this.m_sOutput = $this.m_sOutput -replace "\r\n$", ""
         if ( $this.m_sOutput.Contains( "`r`n" ) ) {
@@ -125,35 +129,22 @@ class ExecAdapterAbstract {
         return $this.m_sOutput
     }
 
-    [ExecAdapterAbstract] setProgram( [Program] $pProgram ) {
+    [ExecAdapterInterface] setProgram( [Program] $pProgram ) {
     <#
     .SYNOPSIS
         Set the program path, file name and arguments.
     .DESCRIPTION
         See synopsis.
     .EXAMPLE
-        $instance.setProgram( <instance of Exec\Program> )
+        [ExecAdapterInterface]$instance.setProgram( <instance of Exec\Program> )
     .PARAMETER pProgram
         An instance of Exec\Program.
     #>
         if( $pProgram -eq $null ) {
-            throw 'Usage: [ExecAdapterAbstract]$instance.pProgram( <path as Exec\Program instance> )'
+            throw 'Usage: [ExecAdapterInterface]$instance.pProgram( <path as Exec\Program instance> )'
         }
         $this.m_pProgram = $pProgram
         return $this
-    }
-
-    [int] run() {
-    <#
-    .SYNOPSIS
-        Runs a program.
-        Returns the program exit code.
-    .DESCRIPTION
-        See synopsis.
-    .EXAMPLE
-        $instance.run()
-    #>
-        throw("This method must be overridden")
     }
 
 }

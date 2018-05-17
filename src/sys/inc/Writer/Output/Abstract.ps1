@@ -58,7 +58,7 @@ class OutputAbstract : OutputInterface {
 
         if( $oType -eq [OutputAbstract] )
         {
-            throw("Class $oType must be inherited")
+            throw("Abstract class $oType must be inherited")
         }
     }
 

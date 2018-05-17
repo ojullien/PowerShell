@@ -3,4 +3,6 @@ desktop.ini
 /temp/
 /tmp/
 /src/saveto.*.cmd
+/src/buildLog.ps1
 /test/priv.*.ps1
+

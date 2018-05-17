@@ -2,7 +2,7 @@
 
 .VERSION 1.2.0
 
-.GUID 73c97ada-0005-4f07-b18f-e1a38ac3a132
+.GUID eb202f80-0009-47c2-9196-01370ebd498f
 
 .AUTHOR Olivier Jullien
 
@@ -20,7 +20,7 @@
 
 .EXTERNALMODULEDEPENDENCIES
 
-.REQUIREDSCRIPTS
+.REQUIREDSCRIPTS sys\inc\Exec\Program.ps1
 
 .EXTERNALSCRIPTDEPENDENCIES
 
@@ -35,17 +35,15 @@ Require .NET Core
 <#
 
 .DESCRIPTION
- Writer interface
+ Adapter interface
 
 #>
 
-class WriterInterface {
-
-    # Properties
+class ExecAdapterInterface {
 
     # Constructors
 
-    WriterInterface() {
+    ExecAdapterInterface() {
     <#
     .SYNOPSIS
         Abstract constructor. This class must be overridden.
@@ -54,83 +52,85 @@ class WriterInterface {
     #>
         $oType = $this.GetType()
 
-        if( $oType -eq [WriterInterface] )
+        if( $oType -eq [ExecAdapterInterface] )
         {
             throw("Interface $oType must be inherited")
         }
     }
 
-    # Methods
+    # Class methods
 
-    [void] error( [string] $sTxt ) {
+    [ExecAdapterInterface] noOutput() {
     <#
     .SYNOPSIS
-        Writes an error type message to the outputs.
-        This method must be overridden by a child class.
+        Does not allow the read of the output stream.
     .DESCRIPTION
         See synopsis.
     .EXAMPLE
-        error 'This is an error type message'
-    .PARAMETER sTxt
-        The text to write.
+        [ExecAdapterInterface]$instance.noOutput()
     #>
         throw("This method must be overridden")
     }
 
-    [void] success( [string] $sTxt ) {
+    [ExecAdapterInterface] saveOutput() {
     <#
     .SYNOPSIS
-        Writes a success type message to the outputs.
-        This method must be overridden by a child class.
+        Allows the read of the output stream.
     .DESCRIPTION
         See synopsis.
     .EXAMPLE
-        success 'This is a success type message'
-    .PARAMETER sTxt
-        The text to write.
+        [ExecAdapterInterface]$instance.saveOutput()
     #>
         throw("This method must be overridden")
     }
 
-    [void] notice( [string] $sTxt ) {
+    [string] getOutput() {
     <#
     .SYNOPSIS
-        Writes a message to the outputs.
-        This method must be overridden by a child class.
+        Returns the raw program output.
     .DESCRIPTION
         See synopsis.
     .EXAMPLE
-        notice 'This is a message'
-    .PARAMETER sTxt
-        The text to write.
+        [ExecAdapterInterface]$instance.getOutput()
     #>
         throw("This method must be overridden")
     }
 
-    [void] noticel( [string] $sTxt ) {
+    [string[]] getSplitedOutput() {
     <#
     .SYNOPSIS
-        Writes a message with no new line to the outputs.
-        This method must be overridden by a child class.
+        Returns a string array that contains the program output
     .DESCRIPTION
         See synopsis.
     .EXAMPLE
-        noticel 'this is a '
-    .PARAMETER sTxt
-        The text to write.
+        [ExecAdapterInterface]$instance.getOutput()
     #>
         throw("This method must be overridden")
     }
 
-
-    [void] separateLine() {
+    [ExecAdapterInterface] setProgram( [Program] $pProgram ) {
     <#
     .SYNOPSIS
-        Writes a line of - to the outputs.
+        Set the program path, file name and arguments.
     .DESCRIPTION
         See synopsis.
     .EXAMPLE
-        separateLine
+        [ExecAdapterInterface]$instance.setProgram( <instance of Exec\Program> )
+    .PARAMETER pProgram
+        An instance of Exec\Program.
+    #>
+        throw("This method must be overridden")
+    }
+
+    [int] run() {
+    <#
+    .SYNOPSIS
+        Runs a program.
+        Returns the program exit code.
+    .DESCRIPTION
+        See synopsis.
+    .EXAMPLE
+        [ExecAdapterInterface]$instance.run()
     #>
         throw("This method must be overridden")
     }

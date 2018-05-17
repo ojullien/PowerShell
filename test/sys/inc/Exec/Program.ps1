@@ -20,7 +20,7 @@
 
 .EXTERNALMODULEDEPENDENCIES
 
-.REQUIREDSCRIPTS src\sys\inc\Writer\autoload.ps1, src\sys\inc\Exec\Program.ps1
+.REQUIREDSCRIPTS src\sys\inc\Exec\Program.ps1
 
 .EXTERNALSCRIPTDEPENDENCIES
 
@@ -38,32 +38,6 @@ Require .NET Core
  Exec\Program tests
 
 #>
-
-Param(
-    [switch] $verbose,
-    [switch] $bequiet,
-    [switch] $logtofile
-)
-
-Set-StrictMode -Version Latest
-$ErrorActionPreference = "Stop"
-$PSDefaultParameterValues['*:ErrorAction']='Stop'
-
-# -----------------------------------------------------------------------------
-# Load common sys files
-# -----------------------------------------------------------------------------
-
-. ("$PWD\..\src\sys\cfg\constant.ps1")
-. ("$m_DIR_SCRIPT\test\sys\cfg\constant.ps1")
-. ("$m_DIR_SYS\inc\Writer\autoload.ps1")
-
-# -----------------------------------------------------------------------------
-# Load Filter\Path files
-# -----------------------------------------------------------------------------
-
-. ("$m_DIR_SYS\inc\Filter\FilterAbstract.ps1")
-. ("$m_DIR_SYS\inc\Filter\Path.ps1")
-. ("$m_DIR_SYS\inc\Filter\File.ps1")
 
 # -----------------------------------------------------------------------------
 # Load Exec\Program file
@@ -172,7 +146,3 @@ if( $( $aResult -join ' ' ) -eq $sArguments ) {
 
 #[string]$pPath
 $pPath = $null
-
-$ErrorActionPreference = "Continue"
-
-Set-StrictMode -Off

@@ -20,7 +20,7 @@
 
 .EXTERNALMODULEDEPENDENCIES
 
-.REQUIREDSCRIPTS sys\inc\Exec\Adapter\Abstract.ps1, sys\inc\Exec\Program.ps1, sys\inc\Filter\Path.ps1, sys\inc\Filter\Dir.ps1
+.REQUIREDSCRIPTS sys\inc\Exec\Adapter\Interface.ps1, sys\inc\Exec\Program.ps1, sys\inc\Filter\Path.ps1, sys\inc\Filter\Dir.ps1
 
 .EXTERNALSCRIPTDEPENDENCIES
 
@@ -50,7 +50,7 @@ class Contig {
     [Path] $m_pSource
 
     [ValidateNotNull()]
-    [ExecAdapterAbstract] $m_pAdapter
+    [ExecAdapterInterface] $m_pAdapter
 
     [ValidateNotNullOrEmpty()]
     hidden [string] $m_ExePath = 'C:\Program Files\SysinternalsSuite\Contig.exe'
@@ -61,13 +61,13 @@ class Contig {
     # Constructors
 
     Contig() {
-        throw "Usage: [Contig]::new( <source as [Filter\Path], adapter as [Exec\Adapter\ExecAdapterAbstract]>"
+        throw "Usage: [Contig]::new( <source as [Filter\Path], adapter as [Exec\Adapter\ExecAdapterInterface]>"
     }
 
-    Contig ( [Path] $source, [ExecAdapterAbstract] $adapter ) {
+    Contig ( [Path] $source, [ExecAdapterInterface] $adapter ) {
 
         if( ( $source -eq $null ) -or ( $adapter -eq $null )  ) {
-            throw "Usage: [Contig]::new( <source as [Filter\Path], adapter as [Exec\Adapter\ExecAdapterAbstract]>"
+            throw "Usage: [Contig]::new( <source as [Filter\Path], adapter as [Exec\Adapter\ExecAdapterInterface]>"
         }
 
         $this.m_pSource = $source
@@ -118,7 +118,7 @@ class Contig {
 
         # Adapter test
         if( $this.m_pAdapter -eq $null ) {
-            throw "Usage: [Contig]::new( <source as [Drive\Drive], adapter as [Exec\Adapter\ExecAdapterAbstract]>"
+            throw "Usage: [Contig]::new( <source as [Drive\Drive], adapter as [Exec\Adapter\ExecAdapterInterface]>"
         }
 
         # Run

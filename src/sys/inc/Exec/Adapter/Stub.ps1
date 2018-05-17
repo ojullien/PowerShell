@@ -44,17 +44,7 @@ class AdapterStub : ExecAdapterAbstract {
     # Properties
     [int] $exitcode = 0
 
-    # Constructors
-
-    StartProcess() {
-        $this.m_bSaveOutput = $false
-        $this.m_sOutput = ''
-    }
-
-    # C
-    # Properties
-
-    # Constructors
+     # Constructors
 
     AdapterStub() {
         $this.m_bSaveOutput = $false

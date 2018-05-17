@@ -92,7 +92,7 @@ class Drive {
     }
 
     [string] getTrace() {
-        return "Volume `"" + $this.m_sVolumeLabel + "`" on `"" + $this.getDriveLetter() + [System.IO.Path]::DirectorySeparatorChar + $this.getSubFolder() + "`""
+        return "Directory `"" + $this.getDriveLetter() + [System.IO.Path]::DirectorySeparatorChar + $this.getSubFolder() + "`" on volume `"" + $this.m_sVolumeLabel + "`""
     }
 
     [string] ToString() {

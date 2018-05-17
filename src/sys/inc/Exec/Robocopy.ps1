@@ -20,7 +20,7 @@
 
 .EXTERNALMODULEDEPENDENCIES
 
-.REQUIREDSCRIPTS sys\inc\Drive\Drive.ps1, sys\inc\Exec\Adapter\Abstract.ps1, sys\inc\Exec\Program.ps1, sys\inc\Filter\Path.ps1
+.REQUIREDSCRIPTS sys\inc\Drive\Drive.ps1, sys\inc\Exec\Adapter\Interface.ps1, sys\inc\Exec\Program.ps1, sys\inc\Filter\Path.ps1
 
 .EXTERNALSCRIPTDEPENDENCIES
 
@@ -56,7 +56,7 @@ class Robocopy {
     [Path] $m_pLogPath
 
     [ValidateNotNull()]
-    [ExecAdapterAbstract] $m_pAdapter
+    [ExecAdapterInterface] $m_pAdapter
 
     [ValidateNotNullOrEmpty()]
     hidden [string] $m_ExePath = 'C:\Windows\System32\robocopy.exe'
@@ -75,13 +75,13 @@ class Robocopy {
     # Constructors
 
     Robocopy() {
-        throw "Usage: [Robocopy]::new( <source as [Drive\Drive], destination as [Drive\Drive], log path and name as [Filter\Path], adapter as [Exec\Adapter\ExecAdapterAbstract]>"
+        throw "Usage: [Robocopy]::new( <source as [Drive\Drive], destination as [Drive\Drive], log path and name as [Filter\Path], adapter as [Exec\Adapter\ExecAdapterInterface]>"
     }
 
-    Robocopy ( [Drive] $source, [Drive] $destination, [Path] $logpath, [ExecAdapterAbstract] $adapter ) {
+    Robocopy ( [Drive] $source, [Drive] $destination, [Path] $logpath, [ExecAdapterInterface] $adapter ) {
 
         if( ( $source -eq $null ) -or ( $destination -eq $null ) -or ( $logpath -eq $null ) -or ( $adapter -eq $null )  ) {
-            throw "Usage: [Robocopy]::new( <source as [Drive\Drive], destination as [Drive\Drive], log path and name as [Filter\Path], adapter as [Exec\Adapter\ExecAdapterAbstract]>"
+            throw "Usage: [Robocopy]::new( <source as [Drive\Drive], destination as [Drive\Drive], log path and name as [Filter\Path], adapter as [Exec\Adapter\ExecAdapterInterface]>"
         }
 
         if( !$logpath.isValid() ) {
@@ -168,7 +168,7 @@ class Robocopy {
 
         # Adapter test
         if( $this.m_pAdapter -eq $null ) {
-            throw "Usage: [Robocopy]::new( <source as [Drive\Drive], destination as [Drive\Drive], log dir as [Filter\Path], adapter as [Exec\Adapter\ExecAdapterAbstract]>"
+            throw "Usage: [Robocopy]::new( <source as [Drive\Drive], destination as [Drive\Drive], log dir as [Filter\Path], adapter as [Exec\Adapter\ExecAdapterInterface]>"
         }
 
         # Run

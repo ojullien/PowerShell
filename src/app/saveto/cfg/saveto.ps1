@@ -42,6 +42,7 @@ Require .NET Core
 $pWriter.separateLine()
 $pWriter.notice( "App configuration" )
 [bool] $appDrivesReady = $true
+[bool] $appConfirmed = $false
 
 # Trace
 [Drive] $pSource = $null
@@ -71,7 +72,6 @@ if( ($appDrivesCollection.count -eq 0) -or ( -not $appDrivesReady ) ){
 
 # Ask for confirmation
 $pWriter.noticel( "All drives are ready." )
-[bool] $appConfirmed = $true
 if( -Not $bequiet.IsPresent ) {
     $pWriter.notice( " Would you like to continue? (Default is No)" )
     $Readhost = Read-Host "[y/n]"
@@ -80,6 +80,8 @@ if( -Not $bequiet.IsPresent ) {
         N { $pWriter.notice( "No, Aborting ...") ; $appConfirmed = $false }
         Default { $pWriter.notice( "Default, Aborting ...") ; $appConfirmed = $false }
     }
+} else {
+    $appConfirmed = $true
 }
 
 # Confirmation

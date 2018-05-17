@@ -2,7 +2,7 @@
 
 .VERSION 1.2.0
 
-.GUID cb98663e-0002-4ceb-92ad-36e9f1eaf33b
+.GUID cb98663e-0001-4ceb-92ad-36e9f1eaf33b
 
 .AUTHOR Olivier Jullien
 
@@ -20,7 +20,7 @@
 
 .EXTERNALMODULEDEPENDENCIES
 
-.REQUIREDSCRIPTS
+.REQUIREDSCRIPTS src\sys\inc\Exec\Adapter\SystemDiagnosticsProcess.ps1
 
 .EXTERNALSCRIPTDEPENDENCIES
 
@@ -35,19 +35,65 @@ Require .NET Core
 <#
 
 .DESCRIPTION
- SystemDiagnosticsProcess data set
+ Exec\Adapter\SystemDiagnosticsProcess tests
 
 #>
 
-Function New-TestExecDiagnosticsObject( $theInput, $expected ) {
-    New-Object -TypeName PsObject -Property @{
-        theInput = $theInput
-        theExpected = $expected }
+# -----------------------------------------------------------------------------
+# Load Exec file
+# -----------------------------------------------------------------------------
+
+. ("$m_DIR_SYS\inc\Exec\Adapter\SystemDiagnosticsProcess.ps1")
+
+# -----------------------------------------------------------------------------
+# Load data test
+# -----------------------------------------------------------------------------
+
+. ("$m_DIR_TEST_SYS\inc\Exec\Adapter\data.ps1")
+
+# ------------------------------------------------------------------------------
+# Test
+# ------------------------------------------------------------------------------
+
+foreach( $item in $aTestDataCollection ) {
+
+    $pWriterDecorated.separateLine()
+    $pWriterDecorated.notice( "Testing: '$( $item.theInput.theProgram )' $( $item.theInput.theArgs -join ' ' )" )
+
+    try {
+        [Path] $pPath = [path]::new( $item.theInput.theProgram )
+        [Program] $pProgram = [Program]::new().setProgramPath( $pPath ).setArgument( $item.theInput.theArgs )
+        [SystemDiagnosticsProcess] $pProcess = [SystemDiagnosticsProcess]::new()
+        $null = $pProcess.setProgram( $pProgram )
+    } catch {
+        $pWriterDecorated.exception( "Exception raised when creating Filter\Path, Exec\Program or Exec\SystemDiagnosticsProcess:  $_" )
+        Exit
+    }
+
+    if( $bequiet.IsPresent ) {
+        $null = $pProcess.noOutput()
+    } else {
+        $null = $pProcess.saveOutput()
+    }
+
+    try {
+        [int] $iExitCode = $pProcess.run()
+    } catch {
+        $pWriterDecorated.exception( "run() raised an exception:  $_" )
+        Continue
+    }
+
+    [string] $sBuffer = "`tExitCode: $iExitCode => $( $item.theExpected.theExitCode )"
+    if( $iExitCode -eq $item.theExpected.theExitCode ) {
+        $pWriterDecorated.success( $sBuffer )
+    } else {
+        $pWriterDecorated.error( $sBuffer )
+    }
+
+    $pWriterDecorated.notice( $pProcess.getOutput() )
+
+    $pProcess = $null
+    $pProgram = $null
+    $pPath = $null
+
 }
-
-$aTestDataCollection = @()
-
-$aTestDataCollection += New-TestExecDiagnosticsObject @{ theProgram = 'C:\Program Files\SysinternalsSuite\hex2dec.exe'; theArgs = @( '-nobanner' ) } @{ theExitCode = -1; theException = $false }
-$aTestDataCollection += New-TestExecDiagnosticsObject @{ theProgram = 'C:\Program Files\SysinternalsSuite\hex2dec.exe'; theArgs = @( '-nobanner', '1234' ) } @{ theExitCode = 1234; theException = $false }
-$aTestDataCollection += New-TestExecDiagnosticsObject @{ theProgram = 'C:\Windows\System32\ping.exe'; theArgs = @( '-n', 1, 'google.fr' ) } @{ theExitCode = 0; theException = $false }
-$aTestDataCollection += New-TestExecDiagnosticsObject @{ theProgram = 'C:\Windows\System32\ping.exe'; theArgs = @( '-n', 1, 'googldddd.fr' ) } @{ theExitCode = 1; theException = $false }

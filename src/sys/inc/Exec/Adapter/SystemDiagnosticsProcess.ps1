@@ -68,6 +68,7 @@ class SystemDiagnosticsProcess : ExecAdapterAbstract {
         [SystemDiagnosticsProcess]$instance.run()
     #>
         # Initialize
+        [string] $sBuffer = ''
         $this.m_sOutput = ''
         $OFS = ' '
 
@@ -85,8 +86,8 @@ class SystemDiagnosticsProcess : ExecAdapterAbstract {
 
         if( $pProcess.Start() ) {
             # Read output. To avoid deadlocks, always read the output stream first and then wait.
-            if( $this.m_bSaveOutput -and $this.m_bRedirectStandardOutput -and !$this.m_bUseShellExecute ) {
-                [string] $sBuffer = $pProcess.StandardOutput.ReadToEnd()
+            $sBuffer = $pProcess.StandardOutput.ReadToEnd()
+            if( $sBuffer -and $this.m_bSaveOutput ) {
                 $this.m_sOutput = $sBuffer.Trim()
             }
         }

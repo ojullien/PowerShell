@@ -2,7 +2,7 @@
 
 .VERSION 1.2.0
 
-.GUID 969dc39f-0002-4e61-9cfd-8e8df7ebebf6
+.GUID 969dc39f-0001-4e61-9cfd-8e8df7ebebf6
 
 .AUTHOR Olivier Jullien
 
@@ -20,7 +20,7 @@
 
 .EXTERNALMODULEDEPENDENCIES
 
-.REQUIREDSCRIPTS
+.REQUIREDSCRIPTS src\sys\inc\Filter\Dir.ps1, test\sys\inc\Filter\Dir-data.ps1
 
 .EXTERNALSCRIPTDEPENDENCIES
 
@@ -35,22 +35,104 @@ Require .NET Core
 <#
 
 .DESCRIPTION
- Dir data set
+ Filter\Dir tests
 
 #>
 
-Function New-TestFilterDirObject( $path, $expected ) {
-    New-Object -TypeName PsObject -Property @{
-        theInput = $path
-        theExpected = $expected }
+# -----------------------------------------------------------------------------
+# Load Filter\Dir
+# -----------------------------------------------------------------------------
+
+. ("$m_DIR_SYS\inc\Filter\Dir.ps1")
+
+try {
+    $pDir = [Dir]::new()
+}
+catch {
+    $pWriterDecorated.error( "ERROR: Cannot load Filter\Dir module: $_" )
+    Exit
 }
 
-$aTestDataCollection = @()
+# -----------------------------------------------------------------------------
+# Load data test
+# -----------------------------------------------------------------------------
 
-$aTestDataCollection += New-TestFilterDirObject 'C:\does\not\exist' @{ isValid = $true; exists =  $false; doFilter = "C:\does\not"; Exception = $false }
-$aTestDataCollection += New-TestFilterDirObject 'C:\Program Files\PowerShell\6.0.2' @{ isValid = $true; exists = $true; doFilter = "C:\Program Files\PowerShell"; Exception = $false }
-$aTestDataCollection += New-TestFilterDirObject 'C:\Program Files\PowerShell\6.0.2\pwsh.exe' @{ isValid = $true; exists =  $false; doFilter = "C:\Program Files\PowerShell\6.0.2"; Exception = $false }
+. ("$m_DIR_TEST_SYS\inc\Filter\Dir-data.ps1")
 
-$aTestDataCollection += New-TestFilterDirObject 'C:\Program Files\Power|Shell\6.0.2' @{ isValid = $false; exists = $false; doFilter = ""; Exception = $true }
-$aTestDataCollection += New-TestFilterDirObject 'C:\Program Files\Power:Shell\6.0.2' @{ isValid = $false; exists = $false; doFilter = ""; Exception = $true }
-$aTestDataCollection += New-TestFilterDirObject 'C:\' @{ isValid = $true; exists = $true; doFilter = ""; Exception = $false }
+# ------------------------------------------------------------------------------
+# Test
+# ------------------------------------------------------------------------------
+
+foreach( $item in $aTestDataCollection ) {
+
+    $pWriterDecorated.separateLine()
+    $pWriterDecorated.notice( "Testing: '$( $item.theInput )'" )
+
+    try {
+        $pPath = [Path]::new( $item.theInput  )
+    }
+    catch {
+        $pWriterDecorated.error( "Cannot load Filter\Path module: $_" )
+        Exit
+    }
+
+    # isValid
+
+    try {
+        # isValid
+        [bool] $bResult = $pDir.isValid( $pPath )
+    } catch {
+        if( $item.theExpected.Exception ) {
+            $pWriterDecorated.exceptionExpected( "isValid raised an expected exception:  $_" )
+        } else {
+            $pWriterDecorated.exception( "isValid raised an exception:  $_" )
+        }
+        continue
+    }
+
+    $sBuffer = "`tisValid: '$([string]$bResult)' => '$( $item.theExpected.isValid )'"
+    if( $bResult -eq $item.theExpected.isValid ) {
+        $pWriterDecorated.success( $sBuffer )
+    } else {
+        $pWriterDecorated.error( $sBuffer )
+    }
+
+    # exists
+    try {
+        [bool] $bResult = $pDir.exists( $pPath )
+    } catch {
+        if( $item.theExpected.Exception ) {
+            $pWriterDecorated.exceptionExpected( "exists raised an expected exception:  $_" )
+        } else {
+            $pWriterDecorated.exception( "exists raised an exception:  $_" )
+        }
+        continue
+    }
+
+    $sBuffer = "`texists: '$([string]$bResult)' => '$( $item.theExpected.exists )'"
+    if( $bResult -eq $item.theExpected.exists ) {
+        $pWriterDecorated.success( $sBuffer )
+    } else {
+        $pWriterDecorated.error( $sBuffer )
+    }
+
+    # doFilter
+    try {
+        [string] $result = $pDir.doFilter( $pPath )
+    } catch {
+        if( $item.theExpected.Exception ) {
+            $pWriterDecorated.exceptionExpected( "doFilter raised an expected exception:  $_" )
+        } else {
+            $pWriterDecorated.exception( "doFilter raised an exception:  $_" )
+        }
+        continue
+    }
+
+    $sBuffer = "`tdoFilter: '$result' => '$( $item.theExpected.doFilter )'"
+    if( $result -eq $item.theExpected.doFilter ) {
+        $pWriterDecorated.success( $sBuffer )
+    } else {
+        $pWriterDecorated.error( $sBuffer )
+    }
+
+}

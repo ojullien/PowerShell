@@ -60,7 +60,6 @@ New-Variable -Name m_OPTION_WAIT -Force -Option Constant,AllScope -Value $( if( 
 # -----------------------------------------------------------------------------
 
 . ("$PWD\..\src\sys\cfg\constant.ps1")
-. ("$m_DIR_SCRIPT\test\sys\cfg\constant.ps1")
 . ("$m_DIR_SYS\inc\Writer\autoload.ps1")
 
 # -----------------------------------------------------------------------------
@@ -83,9 +82,11 @@ New-Variable -Name m_OPTION_WAIT -Force -Option Constant,AllScope -Value $( if( 
 # -----------------------------------------------------------------------------
 
 . ("$m_DIR_SYS\inc\Exec\Program.ps1")
+. ("$m_DIR_SYS\inc\Exec\Adapter\Interface.ps1")
 . ("$m_DIR_SYS\inc\Exec\Adapter\Abstract.ps1")
 . ("$m_DIR_SYS\inc\Exec\Adapter\SystemDiagnosticsProcess.ps1")
 . ("$m_DIR_SYS\inc\Exec\Robocopy.ps1")
+. ("$m_DIR_SYS\inc\Exec\Contig.ps1")
 
 # -----------------------------------------------------------------------------
 # Load sys config
@@ -97,7 +98,6 @@ New-Variable -Name m_OPTION_WAIT -Force -Option Constant,AllScope -Value $( if( 
 # Load app files and config
 # -----------------------------------------------------------------------------
 
-#. ("$m_DIR_APP\saveto\inc\SaveTo.ps1")
 $sCfgPath = "$m_DIR_APP\saveto\cfg\$cfg.cfg.ps1"
 if( ! [File]::new().exists( [Path]::new( $sCfgPath ))) {
     $pWriter.error( "$sCfgPath is missing! Aborting ..." )
@@ -106,45 +106,83 @@ if( ! [File]::new().exists( [Path]::new( $sCfgPath ))) {
     . ($sCfgPath)
 }
 . ("$m_DIR_APP\saveto\cfg\SaveTo.ps1")
+. ("$m_DIR_APP\saveto\inc\SaveTo.ps1")
 
-exit
 # -----------------------------------------------------------------------------
 #  Save to
 # -----------------------------------------------------------------------------
 
-$pWriter.separateLine()
-
-try {
-    $pSaveTo = [SaveTo]::new( [string] $m_DIR_LOG ).setWriter( [Writer] $pWriter ).setSource( [Drive] $pSource ).setDestination( [Drive] $pDestination )
-}
-catch {
-    $pWriter.error( "Cannot load SaveTo: $_" )
+if( -not $appConfirmed ) {
     Exit
 }
 
-# Clean log directory
-$pSaveTo.cleanLog()
+# Creates Adaptater
+try {
+    [SystemDiagnosticsProcess] $pAdapter = [SystemDiagnosticsProcess]::new()
+} catch {
+    $pWriter.error( "Exception raised while creating Exec\Adapter\SystemDiagnosticsProcess:  $_" )
+    Exit
+}
 
+# Create SaveTo
+try {
+    [SaveTo] $pSaveTo = [SaveTo]::new( $pAdapter, [Path]::new( 'C:\Temp' ) )
+} catch {
+    $pWriter.error( "Exception raised while creating SaveTo:  $_" )
+    Exit
+}
 
-
-
-
-
-# Copy
-foreach( $sDir in $aLISTDIR ) {
+foreach( $item in $appDrivesCollection ) {
 
     $pWriter.separateLine()
 
-    if( !$pSaveTo.robocopy( $sDir ) -or !$pSaveTo.contig( $sDir ) ) {
-        $pWriter.notice( "Aborting ...")
-        break
+    # Set source and destination
+    try {
+        $null = $pSaveTo.setSource( [Path]::new( $item.theSource ), $item.theSourceLabel )
+        $null = $pSaveTo.setDestination( [Path]::new( $item.theDestination ), $item.theDestinationLabel )
+    } catch {
+        $pWriter.error( "Exception raised while setting source or destination:  $_" )
+        Exit
+    }
+
+    # Trace
+    $pWriter.notice( [string]$pSaveTo )
+
+    # Robocopy
+    try {
+        $pWriter.noticel( 'Start robocopy ... ' )
+        $null = $pAdapter.noOutput()
+        $bRun = $pSaveTo.robocopy()
+    } catch {
+        $pWriter.error( "Exception raised while robocopying:  $_" )
+        Exit
+    }
+
+    if( $bRun ) {
+        $pWriter.success( "Exit code: $( $pSaveTo.error.code )" )
+    } else {
+        $pWriter.error( "Exit code:  $( $pSaveTo.error.code )" )
+    }
+
+    # Contig
+    try {
+        $pWriter.noticel( 'Start contig ... ' )
+        $null = $pAdapter.saveOutput()
+        $bRun = $pSaveTo.contig()
+    } catch {
+        $pWriter.error( "Exception raised while contigering:  $_" )
+        Exit
+    }
+
+    if( $bRun ) {
+        $pWriter.success( "Exit code: $( $pSaveTo.error.code )" )
+    } else {
+        $pWriter.error( "Exit code:  $( $pSaveTo.error.code )" )
     }
 
 }
 
-Remove-Variable -Name [SaveTo]$pSaveTo
-Remove-Variable -Name [Drive]$pSource
-Remove-Variable -Name [Drive]$pDestination
-Remove-Variable -Name [Writer]$pWriter
+$pSaveTo = $null
+$pAdapter = $null
 
 Set-StrictMode -Off

@@ -2,7 +2,7 @@
 
 .VERSION 1.2.0
 
-.GUID cb98663e-0001-4ceb-92ad-36e9f1eaf33b
+.GUID f2d20462-0001-421e-864b-42cddfa2b4e3
 
 .AUTHOR Olivier Jullien
 
@@ -20,7 +20,7 @@
 
 .EXTERNALMODULEDEPENDENCIES
 
-.REQUIREDSCRIPTS src\sys\inc\Writer\autoload.ps1, src\sys\inc\Exec\Adapter\SystemDiagnosticsProcess.ps1, test\sys\inc\Exec\Adapter\SystemDiagnosticsProcess.ps1
+.REQUIREDSCRIPTS src\sys\inc\Exec\Adapter\CallOperator.ps1
 
 .EXTERNALSCRIPTDEPENDENCIES
 
@@ -35,49 +35,21 @@ Require .NET Core
 <#
 
 .DESCRIPTION
- Exec\Adapter\SystemDiagnosticsProcess tests
+ Exec\Adapter\CallOperator tests
 
 #>
-
-Param(
-    [switch] $verbose,
-    [switch] $bequiet,
-    [switch] $logtofile
-)
-
-Set-StrictMode -Version Latest
-$ErrorActionPreference = "Stop"
-$PSDefaultParameterValues['*:ErrorAction']='Stop'
-
-# -----------------------------------------------------------------------------
-# Load common sys files
-# -----------------------------------------------------------------------------
-
-. ("$PWD\..\src\sys\cfg\constant.ps1")
-. ("$m_DIR_SCRIPT\test\sys\cfg\constant.ps1")
-. ("$m_DIR_SYS\inc\Writer\autoload.ps1")
-
-# -----------------------------------------------------------------------------
-# Load Filter\Path files
-# -----------------------------------------------------------------------------
-
-. ("$m_DIR_SYS\inc\Filter\FilterAbstract.ps1")
-. ("$m_DIR_SYS\inc\Filter\Path.ps1")
-. ("$m_DIR_SYS\inc\Filter\File.ps1")
 
 # -----------------------------------------------------------------------------
 # Load Exec file
 # -----------------------------------------------------------------------------
 
-. ("$m_DIR_SYS\inc\Exec\Program.ps1")
-. ("$m_DIR_SYS\inc\Exec\Adapter\Abstract.ps1")
-. ("$m_DIR_SYS\inc\Exec\Adapter\SystemDiagnosticsProcess.ps1")
+. ("$m_DIR_SYS\inc\Exec\Adapter\CallOperator.ps1")
 
 # -----------------------------------------------------------------------------
 # Load data test
 # -----------------------------------------------------------------------------
 
-. ("$m_DIR_SCRIPT\test\sys\inc\Exec\Adapter\SystemDiagnosticsProcess.ps1")
+. ("$m_DIR_TEST_SYS\inc\Exec\Adapter\data.ps1")
 
 # ------------------------------------------------------------------------------
 # Test
@@ -91,10 +63,10 @@ foreach( $item in $aTestDataCollection ) {
     try {
         [Path] $pPath = [path]::new( $item.theInput.theProgram )
         [Program] $pProgram = [Program]::new().setProgramPath( $pPath ).setArgument( $item.theInput.theArgs )
-        [SystemDiagnosticsProcess] $pProcess = [SystemDiagnosticsProcess]::new()
+        [CallOperator] $pProcess = [CallOperator]::new()
         $null = $pProcess.setProgram( $pProgram )
     } catch {
-        $pWriterDecorated.exception( "Exception raised when creating Filter\Path, Exec\Program or Exec\SystemDiagnosticsProcess:  $_" )
+        $pWriterDecorated.exception( "Exception raised when creating Filter\Path, Exec\Program or Exec\CallOperator:  $_" )
         Exit
     }
 
@@ -125,7 +97,3 @@ foreach( $item in $aTestDataCollection ) {
     $pPath = $null
 
 }
-
-$ErrorActionPreference = "Continue"
-
-Set-StrictMode -Off

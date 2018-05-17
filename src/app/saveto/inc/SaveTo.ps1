@@ -35,13 +35,16 @@ Require .NET Core
 <#
 
 .DESCRIPTION
- save-to App classes and functions
+ save-to App class
 
 #>
 
 class SaveTo {
 
     # Properties
+
+    [ValidateNotNull()]
+    hidden [ExecAdapterInterface] $m_pAdapter
 
     [ValidateNotNull()]
     hidden [Drive] $m_pSource
@@ -52,32 +55,112 @@ class SaveTo {
     [ValidateNotNull()]
     hidden [Path] $m_pDefaultLogDir
 
-    hidden [Path] $m_pCurrentLog
+    hidden [Path] $m_pRobocopyLog
+    hidden [Path] $m_pContigLog
+
+    [ValidateCount(2,2)]
+    [hashtable] $error = @{ code = 0; message = '' }
 
     # Constructors
 
     SaveTo() {
-        throw "Usage: [SaveTo]::new( <valid log directory as [Filter\Path]> )"
+        throw "Usage: [SaveTo]::new( <adapter as [Exec\Adapter\ExecAdapterInterface]>, <log directory as [Filter\Path]> )"
     }
 
-    SaveTo ( [Path] $logdir ) {
-        if( ($logdir -eq $null) -or (![Dir]::new().exists( $logdir )) ) {
-            throw "Usage: [SaveTo]::new( <valid log directory as [Filter\Path]> )"
+    SaveTo ( [ExecAdapterInterface] $adapter, [Path] $logdir ) {
+        if( ($adapter -eq $null) -or ($logdir -eq $null) -or (![Dir]::new().exists( $logdir )) ) {
+            throw "Usage: [SaveTo]::new( <adapter as [Exec\Adapter\ExecAdapterInterface]>, <log directory as [Filter\Path]> )"
         }
+        $this.m_pAdapter = $adapter
         $this.m_pDefaultLogDir = $logdir
-        $this.m_pCurrentLog = $null
+        $this.m_pRobocopyLog = $null
+        $this.m_pContigLog = $null
     }
 
     # Class methods
 
     [String] ToString() {
-        return "[SaveTo] Configuration`n`tSource: $($this.m_pSource)`n`tDestination: $($this.m_pDestination)"
+        return "[SaveTo] Configuration`n" + `
+        "`tSource: $([string]$this.m_pSource.getTrace())`n" + `
+        "`tDestination: $([string]$this.m_pDestination.getTrace())`n" + `
+        "`tRobocopy log: $([string]$this.m_pRobocopyLog)`n" + `
+        "`tContig log: $([string]$this.m_pContigLog)`n" + `
+        "`tAdapter: $( [string]$this.m_pAdapter.GetType() )"
+    }
+
+    [SaveTo] setRobocopyLog( [string] $basename ) {
+    <#
+    .SYNOPSIS
+        Set the robocopy log path.
+        Throw an error if the path is not valid.
+    .DESCRIPTION
+        See synopsis.
+    .EXAMPLE
+        [SaveTo]$instance.setRobocopyLog( <file basename as string> )
+    .PARAMETER basename
+        File basename as string
+    #>
+        # Initialize
+        $this.m_pRobocopyLog = $null
+
+        # Check parameter
+        if( [string]::IsNullOrWhiteSpace( $basename ) ) {
+            throw 'Usage: [SaveTo]$instance.setRobocopyLog( <file basename as string> )'
+        }
+
+        # Build robocopy log path
+        $this.m_pRobocopyLog = [Path]::new( [string]$this.m_pDefaultLogDir + [System.IO.Path]::DirectorySeparatorChar + 'robocopy-' + $basename + ".log"  )
+        if( !$this.m_pRobocopyLog.isValid() ){
+            throw 'SaveTo: The robocopy log path is not valid.'
+        }
+
+        # Delete old log file
+        if( [File]::new().exists( $this.m_pRobocopyLog ) ){
+            Remove-Item "$([string]$this.m_pRobocopyLog)" | Out-Null
+        }
+
+        return $this
+    }
+
+    [SaveTo] setContigLog( [string] $basename ) {
+    <#
+    .SYNOPSIS
+        Set the contig log path.
+        Throw an error if the path is not valid.
+    .DESCRIPTION
+        See synopsis.
+    .EXAMPLE
+        [SaveTo]$instance.setContigLog( <file basename as string> )
+    .PARAMETER basename
+        File basename as string
+    #>
+        # Initialize
+        $this.m_pContigLog = $null
+
+        # Check parameter
+        if( [string]::IsNullOrWhiteSpace( $basename ) ) {
+            throw 'Usage: [SaveTo]$instance.setContigLog( <file basename as string> )'
+        }
+
+        # Build robocopy log path
+        $this.m_pContigLog = [Path]::new( [string]$this.m_pDefaultLogDir + [System.IO.Path]::DirectorySeparatorChar + 'contig-' + $basename + ".log"  )
+        if( !$this.m_pContigLog.isValid() ){
+            throw 'SaveTo: The contig log path is not valid.'
+        }
+
+        # Delete old log file
+        if( [File]::new().exists( $this.m_pContigLog ) ){
+            Remove-Item "$([string]$this.m_pContigLog)"  | Out-Null
+        }
+
+        return $this
     }
 
     [SaveTo] setSource( [Path] $path, [string]$label ) {
     <#
     .SYNOPSIS
         Set the source path. Throw an error if the path is not valid or the drive is not ready.
+        Create default log files.
     .DESCRIPTION
         See synopsis.
     .EXAMPLE
@@ -88,7 +171,8 @@ class SaveTo {
         Drive label as string
     #>
         # Initialize
-        $this.m_pCurrentLog = $null
+        $this.m_pContigLog = $null
+        $this.m_pRobocopyLog = $null
 
         # Check parameters
         if( ($path -eq $null) -or [string]::IsNullOrWhiteSpace( $label ) ) {
@@ -101,16 +185,9 @@ class SaveTo {
             throw 'SaveTo: Source is not valid or the drive is not ready.'
         }
 
-        # Build log path
-        $this.m_pCurrentLog = [Path]::new( [string]$this.m_pDefaultLogDir + [System.IO.Path]::DirectorySeparatorChar + 'robocopy-' + $path.getFilename() + ".log"  )
-        if( !$this.m_pCurrentLog.isValid() ){
-            throw 'SaveTo: The log path is not valid.'
-        }
-
-        # Delete old log file
-        if( [File]::new().exists( $this.m_pCurrentLog ) ){
-            Remove-Item "$([string]$this.m_pCurrentLog)"
-        }
+        # Build log paths
+        $null = $this.setRobocopyLog( $path.getFilename() )
+        $null = $this.setContigLog( $path.getFilename() )
 
         return $this
     }
@@ -119,6 +196,7 @@ class SaveTo {
     <#
     .SYNOPSIS
         Set the destination path. Throw an error if the path is not valid or the drive is not ready.
+        Creates the destination folder if it does not exist.
     .DESCRIPTION
         See synopsis.
     .EXAMPLE
@@ -140,8 +218,8 @@ class SaveTo {
         }
 
         # Create destination
-        if( ![Dir]::new().exists( $this.m_pDestination ) ){
-            New-Item -ItemType "directory" -Force -Path "$([string]$this.m_pDestination)" | Out-Null
+        if( ![Dir]::new().exists( $path ) ){
+            New-Item -ItemType "directory" -Force -Path "$([string]$path)" | Out-Null
         }
 
         return $this
@@ -151,85 +229,78 @@ class SaveTo {
     <#
     .SYNOPSIS
         Robust file/directory copy. The source and the destination must be set.
-        Returns true if the command succeeded.
-        Return false if the drives are not ready or the command failed.
+        Returns true if the command succeeded and false otherwise.
     .DESCRIPTION
         See synopsis.
     .EXAMPLE
-        $pSaveTo.robocopy( <folder name as string> )
+        [SaveTo]$instance.robocopy()
     #>
-
-        # Parameters
-        if( ($source -eq $null) -or ($destination -eq $null) ) {
-            throw 'Usage: [SaveTo]$instance.robocopy( <source as [Filter\Path]]>, <destination as [Filter\Path]]> )'
-        }
-
-        # Log
-        [Path] $pLog = [Path]::new( [string]$this.m_pLogPath + [System.IO.Path]::DirectorySeparatorChar + $source.getFilename()  )
-
-
-
-
-
+        # Initialize
         [bool] $bReturn = $false
-        $sFolder = $sFolder.Trim().Trim('\')
+        $this.error.code = 0
+        $this.error.message = ''
 
-        if( $this.isReadySource() -and $this.isReadyDestination() ) {
-
-            # Robocopy
-            try {
-                $pProcess = [CRobocopy]::new(
-                    "$($this.m_pSource.getDriveLetter())\$($this.m_pSource.getSubFolder())\$sFolder",
-                    "$($this.m_pDestination.getDriveLetter())\$($this.m_pDestination.getSubFolder())\$sFolder",
-                    "$($this.m_sLogPath)\$($this.m_sRobocopyLogName)-$sFolder.log" )
-
-                $bReturn = $pProcess.setWriter( $this.m_pWriter ).run()
-            }
-            catch {
-                $this.m_pWriter.error( "Cannot load or execute CRobocopy: $_" )
-            }
-
-            Remove-Variable -Name [CRobocopy]$pProcess
-
+        # Check parameters
+        if( $this.m_pAdapter -eq $null ) {
+            throw '[SaveTo]::robocopy(). The adapter is not set.'
         }
+
+        if( ($this.m_pSource -eq $null) -or ($this.m_pDestination -eq $null) ) {
+            throw '[SaveTo]::robocopy(). The drives are not set or are not valid.'
+        }
+
+        if( $this.m_pRobocopyLog -eq $null ) {
+            throw '[SaveTo]::robocopy(). The robocopy log path is not set or is not valid.'
+        }
+
+        # Robocopy
+        [Robocopy] $pProcess = [Robocopy]::new( $this.m_pSource, $this.m_pDestination, $this.m_pRobocopyLog, $this.m_pAdapter )
+        $bReturn = $pProcess.run()
+        $this.error.code = $pProcess.getExitCode()
+        $pProcess = $null
+
         return $bReturn
     }
 
-    [bool] contig( [string] $sFolder ) {
+    [bool] contig() {
     <#
     .SYNOPSIS
         Defragments a specified files in folder. The destination must be set.
-        Returns true if the command succeeded.
-        Return false if the drive is not ready or the command failed.
+        Returns true if the command succeeded and false otherwise..
     .DESCRIPTION
         See synopsis.
     .EXAMPLE
-        $pSaveTo.contig( <folder name as string> )
-    .PARAMETER sFolder
-        The folder name
+        [SaveTo]$instance.contig()
     #>
-        if( [string]::IsNullOrWhiteSpace( $sFolder )) {
-            throw "Usage: [SaveTo]::contig( <folder name as string> )"
-        }
-
+        # Initialize
         [bool] $bReturn = $false
-        $sFolder = $sFolder.Trim().Trim('\')
+        $this.error.code = 0
+        $this.error.message = ''
 
-        if( $this.isReadyDestination() ) {
-
-            # Robocopy
-            try {
-                $pProcess = [CContiger]::new( "$($this.m_pDestination.getDriveLetter())\$($this.m_pDestination.getSubFolder())\$sFolder" )
-
-                $bReturn = $pProcess.setWriter( $this.m_pWriter ).run()
-            }
-            catch {
-                $this.m_pWriter.error( "Cannot load or execute CContiger: $_" )
-            }
-
-            Remove-Variable -Name [CContiger]$pProcess
-
+        # Check parameters
+        if( $this.m_pAdapter -eq $null ) {
+            throw '[SaveTo]::contig(). The adapter is not set.'
         }
+
+        if( $this.m_pDestination -eq $null ) {
+            throw '[SaveTo]::contig(). The drive is not set or is not valid.'
+        }
+
+        if( $this.m_pContigLog -eq $null ) {
+            throw '[SaveTo]::contig(). The contig log path is not set or is not valid.'
+        }
+
+        # Contig
+        [Contig] $pProcess = [Contig]::new( [Path]::new( [string]$this.m_pDestination ), $this.m_pAdapter )
+        $bReturn = $pProcess.run()
+        $this.error.code = $pProcess.getExitCode()
+        $pProcess = $null
+
+        # Write log
+        if( $this.m_pAdapter.m_bSaveOutput ){
+            Add-Content -Path "$([string]$this.m_pContigLog)" -Value "$([string]$this.m_pAdapter.getOutput())"
+        }
+
         return $bReturn
     }
 
