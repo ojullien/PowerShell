@@ -27,7 +27,7 @@ I write few lines of 'unit test' code.
 Each file contains code for one class. It display a dot for a successfull test, an 'X' for a failure and an 'E' when an unexpected exception is raised.
 Use the -verbose option to display all the details of the tests.
 
-```powershell
+```pwsh
 PS C:\PowerShell\test> .\filter.ps1 [options]
 
 Options:
