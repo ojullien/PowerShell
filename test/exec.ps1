@@ -91,6 +91,8 @@ $PSDefaultParameterValues['*:ErrorAction']='Stop'
 #. ("$m_DIR_TEST_SYS\inc\Exec\Adapter\StartProcess.ps1")
 . ("$m_DIR_TEST_SYS\inc\Exec\Contig.ps1")
 . ("$m_DIR_TEST_SYS\inc\Exec\Robocopy.ps1")
+. ("$m_DIR_TEST_SYS\inc\Exec\7-Zip.ps1")
+#. ("$m_DIR_TEST_SYS\inc\Exec\7-Zip-more.ps1")
 
 $ErrorActionPreference = "Continue"
 

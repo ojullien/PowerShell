@@ -73,7 +73,7 @@ catch {
 }
 
 # Instantiate Writer decorator class for test mode
-if( $( Test-Path variable:global:m_MODE_TEST ) ){
+if( $( Test-Path variable:global:$m_MODE_TEST ) ){
     try {
         . ("$m_DIR_SYS\inc\Writer\Verbose.ps1")
         [VerboseDecorator] $pWriterDecorated = [VerboseDecorator]::new( $pWriter, $verbose.IsPresent, 80 )
