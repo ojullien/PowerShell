@@ -52,6 +52,7 @@ $aTestDataCollection += New-TestExec7ZipMoreObject `
         theOutputDir = "C:\Temp";
         theExtractOptions = @{ withfullpaths=$false;file='';recurse=$false;} } `
     @{ theExitCode = 0;
+        theCount = 6;
         theExtract = $true;
         theException = $false }
 
@@ -60,5 +61,24 @@ $aTestDataCollection += New-TestExec7ZipMoreObject `
         theOutputDir = "C:\Temp";
         theExtractOptions = @{ withfullpaths=$true;file='';recurse=$false;} } `
     @{ theExitCode = 0;
+        theCount = 1;
+        theExtract = $true;
+        theException = $false }
+
+$aTestDataCollection += New-TestExec7ZipMoreObject `
+    @{ theArchive = "$m_DIR_TEST_SYS\inc\Exec\7-Zip.7z";
+        theOutputDir = "C:\Temp";
+        theExtractOptions = @{ withfullpaths=$false;file='*.txt';recurse=$false;} } `
+    @{ theExitCode = 0;
+        theCount = 0;
+        theExtract = $true;
+        theException = $false }
+
+$aTestDataCollection += New-TestExec7ZipMoreObject `
+    @{ theArchive = "$m_DIR_TEST_SYS\inc\Exec\7-Zip.7z";
+        theOutputDir = "C:\Temp";
+        theExtractOptions = @{ withfullpaths=$false;file='*.bmp';recurse=$true;} } `
+    @{ theExitCode = 0;
+        theCount = 2;
         theExtract = $true;
         theException = $false }

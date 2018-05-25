@@ -61,7 +61,10 @@ foreach( $item in $aTestDataCollection ) {
     $pWriterDecorated.notice( "Testing: '$( $item.theInput.theArchive )'" )
 
     # Clean Output dir
-    Remove-Item "$($item.theInput.theOutputDir)\*" | Out-Null
+    if( Test-Path -LiteralPath "$($item.theInput.theOutputDir)\folder" ) {
+        Remove-Item "$($item.theInput.theOutputDir)\folder" -Recurse -Force | Out-Null
+    }
+    Get-ChildItem "$($item.theInput.theOutputDir)\*" -Recurse -Force | Remove-Item
     [int] $iCount = ( Get-ChildItem $item.theInput.theOutputDir | Measure-Object ).Count
     if( $iCount -ne 0 ){
         throw 'The output directory should be empty.'
@@ -145,10 +148,11 @@ foreach( $item in $aTestDataCollection ) {
     }
 
     $iCount = ( Get-ChildItem $item.theInput.theOutputDir | Measure-Object ).Count
-    if( $iCount -eq 0 ){
-        $pWriterDecorated.error( "`tCount: $iCount" )
-    } else {
+    $sBuffer = "`tOutput item count: $iCount => $( $item.theExpected.theCount )"
+    if( $iCount -eq $item.theExpected.theCount ){
         $pWriterDecorated.success( "`tCount: $iCount" )
+    } else {
+        $pWriterDecorated.error( "`tCount: $iCount" )
     }
 
     $pSevenZip = $null
