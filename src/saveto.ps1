@@ -66,10 +66,7 @@ New-Variable -Name m_OPTION_WAIT -Force -Option Constant,AllScope -Value $( if( 
 # Load sys\Filter files
 # -----------------------------------------------------------------------------
 
-. ("$m_DIR_SYS\inc\Filter\FilterAbstract.ps1")
-. ("$m_DIR_SYS\inc\Filter\Path.ps1")
-. ("$m_DIR_SYS\inc\Filter\Dir.ps1")
-. ("$m_DIR_SYS\inc\Filter\File.ps1")
+. ("$m_DIR_SYS\inc\Filter\autoload.ps1")
 
 # -----------------------------------------------------------------------------
 # Load sys\Drive files

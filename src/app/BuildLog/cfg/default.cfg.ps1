@@ -2,7 +2,7 @@
 
 .VERSION 1.2.0
 
-.GUID 5a516eab-0003-4f39-82f9-f12d189bf98d
+.GUID fe85499f-0002-4ceb-931f-2831b75e3b2d
 
 .AUTHOR Olivier Jullien
 

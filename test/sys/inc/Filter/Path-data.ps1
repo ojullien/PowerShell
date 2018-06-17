@@ -79,4 +79,3 @@ $aTestDataCollection += New-TestFilterPathObject ' ' @{ directoryname = ''; file
 
 $aTestDataCollection += New-TestFilterPathObject '.\does\not\exist.txt' @{ directoryname = '.\does\not'; filename = 'exist.txt'; basename =  'exist'; extension =  '.txt'; pathroot =  ''; isValid = $false; Exception = $false}
 $aTestDataCollection += New-TestFilterPathObject '\does\not\exist.txt' @{ directoryname = '\does\not'; filename = 'exist.txt'; basename =  'exist'; extension =  '.txt'; pathroot =  ''; isValid = $false; Exception = $false}
-

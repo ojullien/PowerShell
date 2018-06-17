@@ -60,14 +60,6 @@ foreach( $item in $aTestDataCollection ) {
     $pWriterDecorated.separateLine()
     $pWriterDecorated.notice( "Testing: '$( $item.theInput.theArchive )'" )
 
-    # Creates the archive path
-    try {
-        [Path] $pArchive = [Path]::new( $item.theInput.theArchive )
-    } catch {
-        $pWriterDecorated.exception( "Exception raised when creating Filter\Path:  $_" )
-        Exit
-    }
-
     # Creates Adaptater stub
     try {
         [AdapterStub] $pStub = [AdapterStub]::new()
@@ -87,7 +79,7 @@ foreach( $item in $aTestDataCollection ) {
 
     # Archive
     try {
-        $null = $pSevenZip.setArchive( $pArchive )
+        $null = $pSevenZip.setArchive( $item.theInput.theArchive )
     } catch {
         if( $item.theExpected.theException ) {
             $pWriterDecorated.exceptionExpected( "setArchive() raised an expected exception:  $_" )
@@ -140,6 +132,5 @@ foreach( $item in $aTestDataCollection ) {
 
     $pSevenZip = $null
     $pStub = $null
-    $pArchive = $null
 
 }

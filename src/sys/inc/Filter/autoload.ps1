@@ -2,7 +2,7 @@
 
 .VERSION 1.2.0
 
-.GUID 5a516eab-0003-4f39-82f9-f12d189bf98d
+.GUID 323d3bb5-0005-4013-8e9e-142f6d540831
 
 .AUTHOR Olivier Jullien
 
@@ -20,7 +20,7 @@
 
 .EXTERNALMODULEDEPENDENCIES
 
-.REQUIREDSCRIPTS
+.REQUIREDSCRIPTS src\sys\inc\Filter\*.ps1
 
 .EXTERNALSCRIPTDEPENDENCIES
 
@@ -35,11 +35,11 @@ Require .NET Core
 <#
 
 .DESCRIPTION
- Default save-to configuration file
+ Filter autoloader. Loads files containing Filter classes according to options.
 
 #>
 
-[hashtable[]] $appDrivesCollection = @(
-    @{ theSource = 'C:\dir1'; theSourceLabel = 'OS'; theDestination = 'C:\Temp\dir1'; theDestinationLabel = 'OS' },
-    @{ theSource = 'C:\dir2'; theSourceLabel = 'OS'; theDestination = 'C:\Temp\dir2'; theDestinationLabel = 'OS' }
-)
+. ("$m_DIR_SYS\inc\Filter\FilterAbstract.ps1")
+. ("$m_DIR_SYS\inc\Filter\Path.ps1")
+. ("$m_DIR_SYS\inc\Filter\Dir.ps1")
+. ("$m_DIR_SYS\inc\Filter\File.ps1")

@@ -46,8 +46,8 @@ class SevenZip {
     [ValidateNotNull()]
     [int] $m_iExitCode
 
-    [ValidateNotNull()]
-    [Path] $m_pArchive
+    [ValidateNotNullOrEmpty()]
+    [string] $m_sArchive
 
     # This is the destination directory path. It's not required to end with a backslash.
     # If you specify *, 7-Zip substitutes that * character to archive name.
@@ -58,7 +58,7 @@ class SevenZip {
     [ExecAdapterInterface] $m_pAdapter
 
     [ValidateNotNullOrEmpty()]
-    hidden [string] $m_ExePath = 'D:\Program Files\7-Zip\7z.exe'
+    hidden [string] $m_sExePath = 'D:\Program Files\7-Zip\7z.exe'
 
     # Constructors
 
@@ -77,25 +77,43 @@ class SevenZip {
 
     # Class methods
 
-    [SevenZip]setOutputDir( [string] $outputdir ) {
-        if( [string]::IsNullOrWhiteSpace( $outputdir ) ) {
+    [SevenZip] setOutputDir( [string] $outputdir ) {
+    <#
+    .SYNOPSIS
+        Specifies a destination directory where files are to be extracted.
+        Raises an error if the path is not valid.
+    .DESCRIPTION
+        See synopsis.
+    .EXAMPLE
+        [SevenZip]$instance.setOutputDir( <output dir as [string]> )
+    #>
+        if( [string]::IsNullOrWhiteSpace( $outputdir ) -or !( Test-Path -Path $outputdir )) {
             throw 'Usage: [SevenZip]$instance.setOutputDir( <output directory as [string] )'
         }
         $this.m_sOutputDir = $outputdir
         return $this
     }
 
-    [SevenZip]setArchive( [Path] $archive ) {
-        if( $archive -eq $null ) {
-            throw 'Usage: [SevenZip]$instance.setArchive( <archive as [Filter\Path] )'
+    [SevenZip] setArchive( [string] $archive ) {
+    <#
+    .SYNOPSIS
+        Set the archive file name and path.
+        Raises an error if the path is not valid.
+    .DESCRIPTION
+        See synopsis.
+    .EXAMPLE
+        [SevenZip]$instance.setArchive( <archive file as [string]> )
+    #>
+        if( [string]::IsNullOrWhiteSpace( $archive ) -or !( Test-Path -Path $archive )) {
+            throw 'Usage: [SevenZip]$instance.setArchive( <archive as [string] )'
         }
-        $this.m_pArchive = $archive
+        $this.m_sArchive = $archive
         return $this
     }
 
     [string] ToString() {
         return "[SevenZip] Configuration`n" `
-            + "`tArchive: $([string]$this.m_pArchive)`n" `
+            + "`tArchive: $([string]$this.m_sArchive)`n" `
             + "`tOutput Directory: $([string]$this.m_sOutputDir)`n" `
             + "`tAdapter: $($this.m_pAdapter.GetType())"
     }
@@ -130,8 +148,8 @@ class SevenZip {
         $this.m_iExitCode = 0
 
         # Adapter test
-        if( $this.m_pAdapter -eq $null ) {
-            throw "Usage: [SevenZip]::new( adapter as [Exec\Adapter\ExecAdapterInterface] )"
+        if( [string]::IsNullOrWhiteSpace( $this.m_pAdapter) ) {
+            throw "Usage: [SevenZip]::new( adapter as [string] )"
         }
 
         # Output directory should exist
@@ -140,11 +158,8 @@ class SevenZip {
         }
 
         # Archive should exist
-        if( $this.m_pArchive -eq $null ) {
-            throw 'Usage: [SevenZip]$instance.setArchive( <archive as [Filter\Path] )'
-        }
-        if( ![File]::new().exists( $this.m_pArchive )){
-            throw 'SevenZip: The archive does not exist'
+        if( [string]::IsNullOrWhiteSpace( $this.m_sArchive ) ) {
+            throw 'Usage: [SevenZip]$instance.setArchive( <archive as [string] )'
         }
 
         # Build the arguments
@@ -157,7 +172,7 @@ class SevenZip {
             $aArgumentList += @( "e" )
         }
         # Archive, output directory
-        $aArgumentList += @( "`"$([string]$this.m_pArchive)`"", "-o`"$([string]$this.m_sOutputDir)`"" )
+        $aArgumentList += @( "`"$([string]$this.m_sArchive)`"", "-o`"$([string]$this.m_sOutputDir)`"" )
         # Files to extract if specified.
         if( ![string]::IsNullOrWhiteSpace( $file ) ){
             $aArgumentList += @( "$file" )
@@ -170,7 +185,7 @@ class SevenZip {
         $aArgumentList += @( "-y" )
 
         # Set the program, the options and run execute the command
-        $this.m_iExitCode = $this.m_pAdapter.setProgram( [Program]::new().setProgramPath( [Path]::new( $this.m_ExePath ) ).setArgument( $aArgumentList ) ).run()
+        $this.m_iExitCode = $this.m_pAdapter.setProgram( [Program]::new().setProgramPath( [Path]::new( $this.m_sExePath ) ).setArgument( $aArgumentList ) ).run()
 
         if( $this.m_iExitCode -gt 0 ) {
             $bReturn = $false
