@@ -35,11 +35,12 @@ Require .NET Core
 <#
 
 .DESCRIPTION
- Default save-to configuration file
+ Default Build-Log configuration file
 
 #>
 
-[hashtable[]] $appDrivesCollection = @(
-    @{ theSource = 'C:\dir1'; theSourceLabel = 'OS'; theDestination = 'C:\Temp\dir1'; theDestinationLabel = 'OS' },
-    @{ theSource = 'C:\dir2'; theSourceLabel = 'OS'; theDestination = 'C:\Temp\dir2'; theDestinationLabel = 'OS' }
-)
+[string[]] $appDomains = @( 'domain1', 'domain2' )
+[string] $appInputLogDir = 'C:\input'
+[string] $appOutputLogDir = 'C:\output'
+[string] $appArchivesInputDir = "C:\archives\*.zip"
+[string] $appArchivesOutputDir = "$appInputLogDir\*"

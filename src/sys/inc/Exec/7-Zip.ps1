@@ -87,7 +87,7 @@ class SevenZip {
     .EXAMPLE
         [SevenZip]$instance.setOutputDir( <output dir as [string]> )
     #>
-        if( [string]::IsNullOrWhiteSpace( $outputdir ) -or !( Test-Path -Path $outputdir )) {
+        if( [string]::IsNullOrWhiteSpace( $outputdir ) ) {
             throw 'Usage: [SevenZip]$instance.setOutputDir( <output directory as [string] )'
         }
         $this.m_sOutputDir = $outputdir

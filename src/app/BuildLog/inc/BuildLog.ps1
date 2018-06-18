@@ -44,93 +44,179 @@ class BuildLog {
     # Properties
 
     [ValidateNotNull()]
-    hidden [SevenZip] $m_pSevenZip
+    [WriterInterface] $m_pWriter
 
     [ValidateCount(2,2)]
     [hashtable] $error = @{ code = 0; message = '' }
 
+    [ValidateNotNull()]
+    hidden [string[]] $m_aDomainsCollection
+
+    [ValidateNotNullOrEmpty()]
+    hidden [string] $m_sInputDir
+
+    [ValidateNotNullOrEmpty()]
+    hidden [string] $m_sOutputDir
+
     # Constructors
 
     BuildLog() {
-        throw "Usage: [BuildLog]::new( <program as [Exec\SevenZip]> )"
+        throw "Usage: [BuildLog]::new( <writer as WriterInterface> )"
     }
 
-    BuildLog ( [SevenZip] $program ) {
-        if( $program -eq $null ) {
-            throw "Usage: [BuildLog]::new( <program as [Exec\SevenZip]> )"
+    BuildLog ( [WriterInterface] $writer ) {
+        if( $writer -eq $null ) {
+            throw "Usage: [BuildLog]::new( <writer as WriterInterface> )"
         }
-        $this.m_pSevenZip = $program
+        $this.m_pWriter = $writer
     }
 
     # Class methods
 
     [String] ToString() {
-        return "[SevenZip] Configuration`n" + `
-        "`tProgram: $( [string]$this.m_pSevenZip )"
+        return "[BuildLog] Configuration`n" + `
+        "`tDomains: $( $this.m_aDomainsCollection.ToString() )"
+        "`tInput: $( $this.m_sInputDir )"
+        "`tOutput: $( $this.m_sOutputDir )"
     }
 
-    [BuildLog] setArchive( [string] $archive ) {
-    <#
-    .SYNOPSIS
-        Set the archive file name and path.
-        Raises an error if the path is not valid.
-    .DESCRIPTION
-        See synopsis.
-    .EXAMPLE
-        [BuildLog]$instance.setArchive( <archive file as [string]> )
-    #>
-        $this.m_pSevenZip.setArchive( $archive )
+    [BuildLog] setDomains( [string[]] $collection ) {
+        if( $collection.Count -eq 0 ) {
+            throw 'Usage: [BuildLog]$instance.setDomains( <collection of domain names as [string[]]> )'
+        }
+        $this.m_aDomainsCollection = $collection
         return $this
     }
 
-    [BuildLog] setOutputDir( [string] $outputdir ) {
-    <#
-    .SYNOPSIS
-        Specifies a destination directory where files are to be extracted.
-        Raises an error if the path is not valid.
-    .DESCRIPTION
-        See synopsis.
-    .EXAMPLE
-        [BuildLog]$instance.setOutputDir( <output dir as [string]> )
-    #>
-        $this.m_pSevenZip.setOutputDir( $outputdir )
+    [BuildLog] setInputDir( [string] $inputDir ) {
+        if( [string]::IsNullOrWhiteSpace( $inputDir ) ) {
+            throw 'Usage: [BuildLog]$instance.setInputDir( <input directory as [string]> )'
+        }
+        $this.m_sInputDir = $inputDir
         return $this
     }
 
-    [bool] extract( [bool]$withfullpaths=$false, [string]$file='', [bool]$recurse=$false ) {
+    [BuildLog] setOutputDir( [string] $outputDir ) {
+        if( [string]::IsNullOrWhiteSpace( $outputDir )  ) {
+            throw 'Usage: [BuildLog]$instance.setOutputDir( <output directory as [string]> )'
+        }
+        $this.m_sOutputDir = $outputDir
+        return $this
+    }
+
+    [bool] createEmptyLogFiles( [int] $iYear, [int] $iMonth ) {
     <#
     .SYNOPSIS
-        Extracts files from an archive to the output directory.
-        Files on disk with same filenames as in archive will be overwritten.
-        $withfullpaths specifies the command extracts files from the archive with their full paths.
-        $file specifies the specific file to extract
-        $recurse specifies the method of treating wildcards and filenames on the command line.
+        Creates year and month files for each domains.
         Returns true if the command succeeded and false otherwise.
     .DESCRIPTION
         See synopsis.
     .EXAMPLE
-        [BuildLog]$instance.extract()
+        [BuildLog]$instance.createEmptyLogFiles()
+    .PARAMETER iYear
+        The year part of the date as integer.
+    .PARAMETER iMonth
+        The month part of the date as integer.
     #>
         # Initialize
-        [bool] $bReturn = $false
+        [bool] $bReturn = $true
         $this.error.code = 0
         $this.error.message = ''
 
         # Check parameters
-        if( $this.m_pSevenZip -eq $null ) {
-            throw '[BuildLog]::extract(). The program is not set.'
+        if( ($iYear -eq $null) -or ($iMonth -eq $null) -or ($iMonth -lt 1) -or ($iMonth -gt 12) ) {
+            throw 'Usage: [BuildLog]$instance.createLogFiles( <year as [integer]>, <month as [integer]> )'
         }
 
-        # Extract
-        $bReturn = $this.m_pSevenZip.extract( $withfullpaths, $file, $recurse )
-        $this.error.code = $this.m_pSevenZip.getExitCode()
-
-        # Write log
-#        if( $this.m_pAdapter.m_bSaveOutput ){
-#            Add-Content -Path "$([string]$this.m_pContigLog)" -Value "$([string]$this.m_pAdapter.getOutput())"
-#        }
+        # Create
+        [string] $sPath = ''
+        [string] $sLogYear = ''
+        [string] $sLogMonth = ''
+        foreach( $sDomain in $this.m_aDomainsCollection ) {
+            $sPath = "{0}\{1}" -f $this.m_sOutputDir, $sDomain
+            $sLogYear = "{0}\{1}.log" -f $sPath, $iYear.ToString()
+            $sLogMonth = "{0}\{1}{2}.log" -f $sPath, $iYear.ToString(), $iMonth.ToString("0#")
+            foreach( $sFile in @( $sLogYear, $sLogMonth ) ) {
+                if( -not $(Test-Path -LiteralPath $sFile -PathType Leaf) ) {
+                    new-item -Force -ItemType File -Path $sFile -Force | Out-Null
+                }
+            }
+        }
 
         return $bReturn
     }
 
+    [bool] concatLogFiles( [string] $source, [string] $destination ) {
+    <#
+    .SYNOPSIS
+        Combine source and destination files.
+        Returns true if the command succeeded and false otherwise.
+    .DESCRIPTION
+        See synopsis.
+    .EXAMPLE
+        [BuildLog]$instance.concatLogFiles()
+    .PARAMETER source
+        The source file path as string.
+    .PARAMETER destination
+        The destination file path as string.
+    #>
+        # Initialize
+        [bool] $bReturn = $true
+        $this.error.code = 0
+        $this.error.message = ''
+
+        # Check parameters
+        if( [string]::IsNullOrWhiteSpace( $source )-or [string]::IsNullOrWhiteSpace( $destination ) ) {
+            throw 'Usage: [BuildLog]$instance.concatLogFiles( <source path as [string]>, <destination path as [string]> )'
+        }
+
+        # Create
+        [string] $sPath = ''
+        [string] $sLogYear = ''
+        [string] $sLogMonth = ''
+        foreach( $sDomain in $this.m_aDomainsCollection ) {
+            $sPath = "{0}\{1}" -f $this.m_sOutputDir, $sDomain
+            $sLogYear = "{0}\{1}.log" -f $sPath, $iYear.ToString()
+            $sLogMonth = "{0}\{1}{2}.log" -f $sPath, $iYear.ToString(), $iMonth.ToString("0#")
+            foreach( $sFile in @( $sLogYear, $sLogMonth ) ) {
+                if( -not $(Test-Path -LiteralPath $sFile -PathType Leaf) ) {
+                    new-item -Force -ItemType File -Path $sFile -Force | Out-Null
+                }
+            }
+        }
+
+        return $bReturn
+    }
+
+    [bool] buildLogs( [string[]] $collection ) {
+    <#
+    .SYNOPSIS
+        Returns true if the command succeeded and false otherwise.
+    .DESCRIPTION
+        See synopsis.
+    .EXAMPLE
+        [BuildLog]$instance.buildLogs()
+    .PARAMETER collection
+        A collection of folder names as array of string.
+    #>
+        # Initialize
+        [bool] $bReturn = $true
+        [int] $iYear = 0
+        [int] $iMonth = 0
+        [int] $iDay = 0
+        $this.error.code = 0
+        $this.error.message = ''
+
+        foreach( $sDir in $collection ) {
+            #
+            $iYear = [int] $sDir.Substring(4,4)
+            $iMonth = [int] $sDir.Substring(8,2)
+            $iDay = [int] $sDir.Substring(10,2)
+            #
+            foreach( $sDomain in $this.m_aDomainsCollection ) {
+            }
+        }
+
+        return $bReturn
+    }
 }

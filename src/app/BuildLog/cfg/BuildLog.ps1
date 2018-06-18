@@ -35,48 +35,68 @@ Require .NET Core
 <#
 
 .DESCRIPTION
- save-to App Configuration file
+ Build-Log App Configuration file
 
 #>
 
-$pWriter.separateLine()
-$pWriter.notice( "App configuration" )
-[bool] $appDrivesReady = $true
+[bool] $appReady = $true
 [bool] $appConfirmed = $false
 
 # Trace
-[Drive] $pSource = $null
-[Drive] $pDestination = $null
-foreach( $item in $appDrivesCollection ) {
-    [Drive] $pSource = [Drive]::new( $item.theSource, $item.theSourceLabel )
-    [Drive] $pDestination = [Drive]::new( $item.theDestination, $item.theDestinationLabel )
-    $pWriter.noticel( "`tFrom " + "`'$($item.theSource)`'"  + " on " + "`'$($item.theSourceLabel)`'" + " to " + "`'$($item.theDestination)`'" + " on " + "`'$($item.theDestinationLabel)`'." )
-    if( !$pSource.isReady() -or !$pSource.testPath()  ) {
-        $pWriter.error( "source is missing" )
-        $appDrivesReady = $false
-    } elseif( !$pDestination.isReady() ) {
-        $pWriter.error( "destination is not ready" )
-        $appDrivesReady = $false
+$pWriter.separateLine()
+$pWriter.notice( "App configuration" )
+$pWriter.noticel( "`tDomains: " )
+foreach( $sDomain in $appDomains ) {
+    $pWriter.noticel( "$sDomain," )
+}
+$pWriter.notice( "." )
+$pWriter.notice( "`tExtract archives from " + "`'$($appArchivesInputDir)`'"  + " to " + "`'$($appArchivesOutputDir)`'." )
+$pWriter.notice( "`tProcess logs from " + "`'$($appInputLogDir)`'"  + " to " + "`'$($appOutputLogDir)`'." )
+
+# Check path
+[Path] $pFilterPath = [Path]::new()
+[Dir] $pFilterDir = [Dir]::new()
+
+foreach( $item in @( $appInputLogDir, $appOutputLogDir ) ) {
+    if( $pFilterPath.isValid( $item ) ){
+        if( ! $pFilterDir.exists( $pFilterPath ) ){
+            new-item -Name $item -ItemType Directory -Force | Out-Null
+            $pWriter.notice( "`tCreating: " + "`'$($item)`'." )
+        }
     } else {
-        $pWriter.notice("")
+        $pWriter.errot( "`tPath is not valid: " + "`'$($item)`'." )
+        $appReady =$false
     }
 }
-$pSource = $null
-$pDestination = $null
 
-# Check drives
-if( ($appDrivesCollection.count -eq 0) -or ( -not $appDrivesReady ) ){
+foreach( $sDomain in $appDomains ) {
+    if( $pFilterPath.isValid( "$appOutputLogDir\$sDomain" ) ){
+        if( ! $pFilterDir.exists( $pFilterPath ) ){
+            new-item -Path $appOutputLogDir -Name $sDomain -ItemType Directory -Force | Out-Null
+            $pWriter.notice( "`tCreating: " + "`'$appOutputLogDir" + [System.IO.Path]::DirectorySeparatorChar + "$sDomain`'." )
+        }
+    } else {
+        $pWriter.errot( "`tPath is not valid: " + "`'$appOutputLogDir" + [System.IO.Path]::DirectorySeparatorChar + "$sDomain`'." )
+        $appReady =$false
+    }
+}
+
+$pFilterPath = $null
+$pFilterDir = $null
+
+# App ready
+if( -not $appReady ){
     $pWriter.notice( "Aborting ..." )
     Exit
 }
 
 # Ask for confirmation
-$pWriter.noticel( "All drives are ready." )
+$pWriter.noticel( "The app is ready." )
 if( -Not $bequiet.IsPresent ) {
     $pWriter.notice( " Would you like to continue? (Default is No)" )
     $Readhost = Read-Host "[y/n]"
     Switch( $ReadHost ) {
-        Y { $pWriter.notice( "Yes, Saving ...") ; $appConfirmed = $true }
+        Y { $pWriter.notice( "Yes, Processing ...") ; $appConfirmed = $true }
         N { $pWriter.notice( "No, Aborting ...") ; $appConfirmed = $false }
         Default { $pWriter.notice( "Default, Aborting ...") ; $appConfirmed = $false }
     }

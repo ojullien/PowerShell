@@ -35,7 +35,7 @@ Require .NET Core
 <#
 
 .DESCRIPTION
- build consistent log from many apache log
+ build consistent log from many apache log files.
 
 #>
 [CmdletBinding()]
@@ -85,55 +85,115 @@ New-Variable -Name m_OPTION_WAIT -Force -Option Constant,AllScope -Value $( if( 
 . ("$m_DIR_SYS\cfg\main.ps1")
 
 # -----------------------------------------------------------------------------
-# Load app files and config
+# Load app files and instanciate Process
 # -----------------------------------------------------------------------------
 
-#$sCfgPath = "$m_DIR_APP\BuildLog\cfg\$cfg.cfg.ps1"
-#if( ! [File]::new().exists( [Path]::new( $sCfgPath ))) {
-#    $pWriter.error( "$sCfgPath is missing! Aborting ..." )
-#    Exit
-#} else {
-#    . ($sCfgPath)
-#}
-#. ("$m_DIR_APP\BuildLog\cfg\BuildLog.ps1")
-. ("$m_DIR_APP\BuildLog\inc\BuildLog.ps1")
+. ("$m_DIR_APP\BuildLog\inc\ExtractLog.ps1")
 
-# -----------------------------------------------------------------------------
-#  Build Log
-# -----------------------------------------------------------------------------
-
-[bool] $bRun = $false
-
-# Creates 7-Zip
 try {
-    [SystemDiagnosticsProcess] $pAdapter = [SystemDiagnosticsProcess]::new()
-    [SevenZip] $pSevenZip = [SevenZip]::new( $pAdapter )
-    [BuildLog] $pProcess = [BuildLog]::new($pSevenZip)
+    [ExtractLog] $pProcess = [ExtractLog]::new( [SevenZip]::new( [SystemDiagnosticsProcess]::new() ) )
 } catch {
-    $pWriter.error( "Exception raised while creating Exec\BuildLog:  $_" )
+    $pWriter.error( "Exception raised while creating ExtractLog:  $_" )
     Exit
 }
 
-# Step 1
-try {
-    $null = $pProcess.setArchive( "D:\Servers.Online.net\sd-test\download\data\*_0625.tar.bz2" ).setOutputDir( "D:\Servers.Online.net\sd-test\download\data" )
-    $pWriter.notice( [string]$pProcess )
-    $bRun = $pProcess.extract( $false, "", $false )
-} catch {
-    $pWriter.exception( "Exception raised while running step 1:  $_" )
+# -----------------------------------------------------------------------------
+# Load config
+# -----------------------------------------------------------------------------
+
+$sCfgPath = "$m_DIR_APP\BuildLog\cfg\$cfg.cfg.ps1"
+if( ! [File]::new().exists( [Path]::new( $sCfgPath ))) {
+    $pWriter.error( "$sCfgPath is missing! Aborting ..." )
+    Exit
+} else {
+    . ($sCfgPath)
+}
+. ("$m_DIR_APP\BuildLog\cfg\BuildLog.ps1")
+
+if( -not $appConfirmed ) {
+    Exit
 }
 
-# Step 2
+# Extract archives
+<#
+$pWriter.notice( $appArchivesOutputDir )
 try {
-    $null = $pProcess.setArchive( "D:\Servers.Online.net\sd-test\download\data\*_0625.tar" ).setOutputDir( "D:\Servers.Online.net\sd-test\download\temp" )
+    $null = $pProcess.setArchive( $appArchivesInputDir ).setOutputDir( $appArchivesOutputDir )
     $pWriter.notice( [string]$pProcess )
-    $bRun = $pProcess.extract( $false, "*_0625.tar.bz2", $true )
-} catch {
-    $pWriter.exception( "Exception raised while running step 1:  $_" )
+    [bool] $bRun = $pProcess.extract( $true, "var/log/apache2", $false )
 }
+catch {
+    $pWriter.error( "Exception raised while extracting archives:  $_" )
+}
+#>
+
+# Build logs
+try {
+    [BuildLog] $pProcess = [BuildLog]::new( $pWriter )
+    $null = $pProcess.setDomains( $appDomains ).setInputDir( $appInputLogDir ).setOutputDir( $appOutputLogDir )
+} catch {
+    $pWriter.error( "Exception raised while creating BuildLog: $_" )
+    Exit
+}
+
+[string[]] $aDirCollection = Get-ChildItem -Path $appInputLogDir -Directory -Name | Sort-Object
+[int] $iCount = $aDirCollection.Count
+$pWriter.notice("count:$iCount")
+
+<#
+foreach ($sDir in $aDirCollection) {
+
+    $iYear = [int] $sDir.Substring(4,4)
+    $iMonth = [int] $sDir.Substring(8,2)
+    $iDay = [int] $sDir.Substring(10,2)
+
+    # Create log files
+
+
+    if( $iDay -gt 1 ){
+
+        foreach( $sDomain in $appDomains ) {
+            #[string] $sBuffer = "log-{0}{1}{2}_0625" -f $iFirstYear, $iCurrentMonth.ToString("0#"), $iCurrentDay.ToString("0#")
+            $sPath = "{0}\{1}" -f $appOutputLogDir, $sDomain
+            $sLogYear = "{0}\{1}.log" -f $sPath, $iYear.ToString()
+            $sLogMonth = "{0}\{1}{2}.log" -f $sPath, $iYear.ToString(), $iMonth.ToString("0#")
+            $pWriter.notice("path:$sPath")
+            $pWriter.notice("year:$sLogYear")
+            $pWriter.notice("month:$sLogMonth")
+            new-item -Force -ItemType File -Path $sLogYear, $sLogMonth | Out-Null
+            break
+        }
+
+
+    }else{
+
+    }
+break
+}
+#>
+
+
+
+
+
+<#
+[datetime] $pDateTime = (get-date -Year $iFirstYear -Month $iFirstMonth -Day $iFirstDay)
+$pWriter.notice( "date: " + $pDateTime.ToShortDateString() )
+
+
+$pWriter.notice( "year: $iFirstYear" )
+for( [int]$iCurrentMonth = $iFirstMonth; $iCurrentMonth -lt 13; $iCurrentMonth++ ) {^
+    $pWriter.notice( "`tmonth: $iCurrentMonth" )
+    for( [int]$iCurrentDay = $iFirstDay; $iCurrentDay -lt 31; $iCurrentDay++ ) {
+        $pWriter.notice( "`t`tday: $iCurrentDay" )
+        $sDir = "log-{0}{1}{2}_0625" -f $iFirstYear, $iCurrentMonth.ToString("0#"), $iCurrentDay.ToString("0#")
+        if( -not (Test-Path -LiteralPath $sDir -PathType Container) ) {
+            $pWriter.notice( "$sDir is missing" )
+            continue
+        }
+    }
+}
+#>
 
 $pProcess = $null
-$pSevenZip = $null
-$pAdapter = $null
-
 Set-StrictMode -Off
