@@ -88,10 +88,11 @@ New-Variable -Name m_OPTION_WAIT -Force -Option Constant,AllScope -Value $( if( 
 # Load app files and instanciate Process
 # -----------------------------------------------------------------------------
 
+. ("$m_DIR_APP\BuildLog\inc\BuildLog.ps1")
 . ("$m_DIR_APP\BuildLog\inc\ExtractLog.ps1")
 
 try {
-    [ExtractLog] $pProcess = [ExtractLog]::new( [SevenZip]::new( [SystemDiagnosticsProcess]::new() ) )
+    [ExtractLog] $pExtractor = [ExtractLog]::new( [SevenZip]::new( [SystemDiagnosticsProcess]::new() ) )
 } catch {
     $pWriter.error( "Exception raised while creating ExtractLog:  $_" )
     Exit
@@ -125,12 +126,12 @@ try {
 catch {
     $pWriter.error( "Exception raised while extracting archives:  $_" )
 }
+$pExtractor = $null
 #>
 
-# Build logs
 try {
-    [BuildLog] $pProcess = [BuildLog]::new( $pWriter )
-    $null = $pProcess.setDomains( $appDomains ).setInputDir( $appInputLogDir ).setOutputDir( $appOutputLogDir )
+    [BuildLog] $pBuilder = [BuildLog]::new( $pWriter )
+    $null = $pBuilder.setDomains( $appDomains ).setInputDir( $appInputLogDir ).setOutputDir( $appOutputLogDir )
 } catch {
     $pWriter.error( "Exception raised while creating BuildLog: $_" )
     Exit
@@ -139,6 +140,12 @@ try {
 [string[]] $aDirCollection = Get-ChildItem -Path $appInputLogDir -Directory -Name | Sort-Object
 [int] $iCount = $aDirCollection.Count
 $pWriter.notice("count:$iCount")
+
+#[bool] $bRun = $pBuilder.concatFiles( "D:\Servers.Online.net\sd-test\input\log-20170803_0625\var\log\apache2\deadzone\access.log", "D:\Servers.Online.net\sd-test\output\deadzone", 2017, 08)
+[string[]] $collection = @("log-20180402_0625")
+[bool] $bRun = $pBuilder.buildLogs( $collection )
+$pWriter.notice("run:$bRun")
+$pBuilder = $null
 
 <#
 foreach ($sDir in $aDirCollection) {
@@ -195,5 +202,4 @@ for( [int]$iCurrentMonth = $iFirstMonth; $iCurrentMonth -lt 13; $iCurrentMonth++
 }
 #>
 
-$pProcess = $null
 Set-StrictMode -Off
