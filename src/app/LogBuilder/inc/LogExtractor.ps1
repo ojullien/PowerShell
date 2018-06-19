@@ -2,7 +2,7 @@
 
 .VERSION 1.2.0
 
-.GUID fe85499f-0003-4ceb-931f-2831b75e3b2d
+.GUID e5f0d849-0003-4c6a-b731-2b6bc8364595
 
 .AUTHOR Olivier Jullien
 
@@ -20,7 +20,7 @@
 
 .EXTERNALMODULEDEPENDENCIES
 
-.REQUIREDSCRIPTS sys,app\ExtractLog
+.REQUIREDSCRIPTS sys,app\LogExtractor
 
 .EXTERNALSCRIPTDEPENDENCIES
 
@@ -39,7 +39,7 @@ Require .NET Core
 
 #>
 
-class ExtractLog {
+class LogExtractor {
 
     # Properties
 
@@ -51,13 +51,13 @@ class ExtractLog {
 
     # Constructors
 
-    ExtractLog() {
-        throw "Usage: [ExtractLog]::new( <program as [Exec\SevenZip]> )"
+    LogExtractor() {
+        throw "Usage: [LogExtractor]::new( <program as [Exec\SevenZip]> )"
     }
 
-    ExtractLog ( [SevenZip] $program ) {
+    LogExtractor ( [SevenZip] $program ) {
         if( $program -eq $null ) {
-            throw "Usage: [ExtractLog]::new( <program as [Exec\SevenZip]> )"
+            throw "Usage: [LogExtractor]::new( <program as [Exec\SevenZip]> )"
         }
         $this.m_pSevenZip = $program
     }
@@ -65,11 +65,11 @@ class ExtractLog {
     # Class methods
 
     [String] ToString() {
-        return "[ExtractLog] Configuration`n" + `
+        return "[LogExtractor] Configuration`n" + `
         "`tProgram: $( [string]$this.m_pSevenZip )"
     }
 
-    [ExtractLog] setArchive( [string] $archive ) {
+    [LogExtractor] setArchive( [string] $archive ) {
     <#
     .SYNOPSIS
         Set the archive file name and path.
@@ -77,7 +77,7 @@ class ExtractLog {
     .DESCRIPTION
         See synopsis.
     .EXAMPLE
-        [ExtractLog]$instance.setArchive( <archive file as [string]> )
+        [LogExtractor]$instance.setArchive( <archive file as [string]> )
     .PARAMETER archive
         The archive path as string. May be a folder.
     #>
@@ -85,7 +85,7 @@ class ExtractLog {
         return $this
     }
 
-    [ExtractLog] setOutputDir( [string] $outputdir ) {
+    [LogExtractor] setOutputDir( [string] $outputdir ) {
     <#
     .SYNOPSIS
         Specifies a destination directory where files are to be extracted.
@@ -93,7 +93,7 @@ class ExtractLog {
     .DESCRIPTION
         See synopsis.
     .EXAMPLE
-        [ExtractLog]$instance.setOutputDir( <output dir as [string]> )
+        [LogExtractor]$instance.setOutputDir( <output dir as [string]> )
     .PARAMETER outputdir
         The destination directory as string.
     #>
@@ -113,7 +113,7 @@ class ExtractLog {
     .DESCRIPTION
         See synopsis.
     .EXAMPLE
-        [ExtractLog]$instance.extract()
+        [LogExtractor]$instance.extract()
     .PARAMETER withfullpaths
         If true: extracts files from an archive with their full paths.
     .PARAMETER file
@@ -129,7 +129,7 @@ class ExtractLog {
 
         # Check parameters
         if( $this.m_pSevenZip -eq $null ) {
-            throw '[ExtractLog]::extract(). The program is not set.'
+            throw '[LogExtractor]::extract(). The program is not set.'
         }
 
         # Extract

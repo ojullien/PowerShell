@@ -2,7 +2,7 @@
 
 .VERSION 1.2.0
 
-.GUID fe85499f-0001-4ceb-931f-2831b75e3b2d
+.GUID e5f0d849-0001-4c6a-b731-2b6bc8364595
 
 .AUTHOR Olivier Jullien
 
@@ -88,13 +88,13 @@ New-Variable -Name m_OPTION_WAIT -Force -Option Constant,AllScope -Value $( if( 
 # Load app files and instanciate Process
 # -----------------------------------------------------------------------------
 
-. ("$m_DIR_APP\BuildLog\inc\BuildLog.ps1")
-. ("$m_DIR_APP\BuildLog\inc\ExtractLog.ps1")
+. ("$m_DIR_APP\LogBuilder\inc\LogBuilder.ps1")
+. ("$m_DIR_APP\LogBuilder\inc\LogExtractor.ps1")
 
 try {
-    [ExtractLog] $pExtractor = [ExtractLog]::new( [SevenZip]::new( [SystemDiagnosticsProcess]::new() ) )
+    [LogExtractor] $pExtractor = [LogExtractor]::new( [SevenZip]::new( [SystemDiagnosticsProcess]::new() ) )
 } catch {
-    $pWriter.error( "Exception raised while creating ExtractLog:  $_" )
+    $pWriter.error( "Exception raised while creating LogExtractor:  $_" )
     Exit
 }
 
@@ -102,104 +102,51 @@ try {
 # Load config
 # -----------------------------------------------------------------------------
 
-$sCfgPath = "$m_DIR_APP\BuildLog\cfg\$cfg.cfg.ps1"
+$sCfgPath = "$m_DIR_APP\LogBuilder\cfg\$cfg.cfg.ps1"
 if( ! [File]::new().exists( [Path]::new( $sCfgPath ))) {
     $pWriter.error( "$sCfgPath is missing! Aborting ..." )
     Exit
 } else {
     . ($sCfgPath)
 }
-. ("$m_DIR_APP\BuildLog\cfg\BuildLog.ps1")
+. ("$m_DIR_APP\LogBuilder\cfg\LogBuilder.ps1")
 
 if( -not $appConfirmed ) {
     Exit
 }
 
 # Extract archives
-<#
-$pWriter.notice( $appArchivesOutputDir )
 try {
-    $null = $pProcess.setArchive( $appArchivesInputDir ).setOutputDir( $appArchivesOutputDir )
-    $pWriter.notice( [string]$pProcess )
-    [bool] $bRun = $pProcess.extract( $true, "var/log/apache2", $false )
+    $null = $pExtractor.setArchive( $appArchivesInputDir ).setOutputDir( $appArchivesOutputDir )
+    $pWriter.notice( [string]$pExtractor )
+    if( $pExtractor.extract( $true, "var/log/apache2", $false ) ) {
+        $pWriter.success( "Exit code: $( $pExtractor.error.code )" )
+    } else {
+        $pWriter.error( "Exit code:  $( $pExtractor.error.code ) Message: $( $pExtractor.error.message )" )
+    }
 }
 catch {
     $pWriter.error( "Exception raised while extracting archives:  $_" )
 }
 $pExtractor = $null
-#>
+
+# Build Log
+[string[]] $aDirCollection = Get-ChildItem -Path $appInputLogDir -Directory -Name | Sort-Object
+$pWriter.notice( "Count: $($aDirCollection.Count)" )
 
 try {
-    [BuildLog] $pBuilder = [BuildLog]::new( $pWriter )
+    [LogBuilder] $pBuilder = [LogBuilder]::new( $pWriter )
     $null = $pBuilder.setDomains( $appDomains ).setInputDir( $appInputLogDir ).setOutputDir( $appOutputLogDir )
+    $pWriter.notice( [string]$pBuilder )
+    if( $pBuilder.build( $aDirCollection ) ) {
+        $pWriter.success( "Exit code: $( $pBuilder.error.code )" )
+    } else {
+        $pWriter.error( "Exit code:  $( $pBuilder.error.code ) Message: $( $pBuilder.error.message )" )
+    }
 } catch {
-    $pWriter.error( "Exception raised while creating BuildLog: $_" )
-    Exit
+    $pWriter.error( "Exception raised in LogBuilder: $_" )
 }
 
-[string[]] $aDirCollection = Get-ChildItem -Path $appInputLogDir -Directory -Name | Sort-Object
-[int] $iCount = $aDirCollection.Count
-$pWriter.notice("count:$iCount")
-
-#[bool] $bRun = $pBuilder.concatFiles( "D:\Servers.Online.net\sd-test\input\log-20170803_0625\var\log\apache2\deadzone\access.log", "D:\Servers.Online.net\sd-test\output\deadzone", 2017, 08)
-[string[]] $collection = @("log-20180402_0625")
-[bool] $bRun = $pBuilder.buildLogs( $collection )
-$pWriter.notice("run:$bRun")
 $pBuilder = $null
-
-<#
-foreach ($sDir in $aDirCollection) {
-
-    $iYear = [int] $sDir.Substring(4,4)
-    $iMonth = [int] $sDir.Substring(8,2)
-    $iDay = [int] $sDir.Substring(10,2)
-
-    # Create log files
-
-
-    if( $iDay -gt 1 ){
-
-        foreach( $sDomain in $appDomains ) {
-            #[string] $sBuffer = "log-{0}{1}{2}_0625" -f $iFirstYear, $iCurrentMonth.ToString("0#"), $iCurrentDay.ToString("0#")
-            $sPath = "{0}\{1}" -f $appOutputLogDir, $sDomain
-            $sLogYear = "{0}\{1}.log" -f $sPath, $iYear.ToString()
-            $sLogMonth = "{0}\{1}{2}.log" -f $sPath, $iYear.ToString(), $iMonth.ToString("0#")
-            $pWriter.notice("path:$sPath")
-            $pWriter.notice("year:$sLogYear")
-            $pWriter.notice("month:$sLogMonth")
-            new-item -Force -ItemType File -Path $sLogYear, $sLogMonth | Out-Null
-            break
-        }
-
-
-    }else{
-
-    }
-break
-}
-#>
-
-
-
-
-
-<#
-[datetime] $pDateTime = (get-date -Year $iFirstYear -Month $iFirstMonth -Day $iFirstDay)
-$pWriter.notice( "date: " + $pDateTime.ToShortDateString() )
-
-
-$pWriter.notice( "year: $iFirstYear" )
-for( [int]$iCurrentMonth = $iFirstMonth; $iCurrentMonth -lt 13; $iCurrentMonth++ ) {^
-    $pWriter.notice( "`tmonth: $iCurrentMonth" )
-    for( [int]$iCurrentDay = $iFirstDay; $iCurrentDay -lt 31; $iCurrentDay++ ) {
-        $pWriter.notice( "`t`tday: $iCurrentDay" )
-        $sDir = "log-{0}{1}{2}_0625" -f $iFirstYear, $iCurrentMonth.ToString("0#"), $iCurrentDay.ToString("0#")
-        if( -not (Test-Path -LiteralPath $sDir -PathType Container) ) {
-            $pWriter.notice( "$sDir is missing" )
-            continue
-        }
-    }
-}
-#>
 
 Set-StrictMode -Off

@@ -2,7 +2,7 @@
 
 .VERSION 1.2.0
 
-.GUID 5a516eab-0007-4f39-82f9-f12d189bf98d
+.GUID e5f0d849-0004-4c6a-b731-2b6bc8364595
 
 .AUTHOR Olivier Jullien
 
@@ -46,10 +46,7 @@ Require .NET Core
 $pWriter.separateLine()
 $pWriter.notice( "App configuration" )
 $pWriter.noticel( "`tDomains: " )
-foreach( $sDomain in $appDomains ) {
-    $pWriter.noticel( "$sDomain," )
-}
-$pWriter.notice( "." )
+$pWriter.notice( [string] $( $appDomains -join ', ' ) )
 $pWriter.notice( "`tExtract archives from " + "`'$($appArchivesInputDir)`'"  + " to " + "`'$($appArchivesOutputDir)`'." )
 $pWriter.notice( "`tProcess logs from " + "`'$($appInputLogDir)`'"  + " to " + "`'$($appOutputLogDir)`'." )
 

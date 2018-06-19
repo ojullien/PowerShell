@@ -2,7 +2,7 @@
 
 .VERSION 1.2.0
 
-.GUID fe85499f-0003-4ceb-931f-2831b75e3b2d
+.GUID e5f0d849-0002-4c6a-b731-2b6bc8364595
 
 .AUTHOR Olivier Jullien
 
@@ -20,7 +20,7 @@
 
 .EXTERNALMODULEDEPENDENCIES
 
-.REQUIREDSCRIPTS sys,app\BuildLog
+.REQUIREDSCRIPTS sys,app\LogBuilder
 
 .EXTERNALSCRIPTDEPENDENCIES
 
@@ -39,7 +39,7 @@ Require .NET Core
 
 #>
 
-class BuildLog {
+class LogBuilder {
 
     # Properties
 
@@ -60,13 +60,13 @@ class BuildLog {
 
     # Constructors
 
-    BuildLog() {
-        throw "Usage: [BuildLog]::new( <writer as WriterInterface> )"
+    LogBuilder() {
+        throw "Usage: [LogBuilder]::new( <writer as WriterInterface> )"
     }
 
-    BuildLog ( [WriterInterface] $writer ) {
+    LogBuilder ( [WriterInterface] $writer ) {
         if( $writer -eq $null ) {
-            throw "Usage: [BuildLog]::new( <writer as WriterInterface> )"
+            throw "Usage: [LogBuilder]::new( <writer as WriterInterface> )"
         }
         $this.m_pWriter = $writer
     }
@@ -74,31 +74,31 @@ class BuildLog {
     # Class methods
 
     [String] ToString() {
-        return "[BuildLog] Configuration`n" + `
+        return "[LogBuilder] Configuration`n" + `
         "`tDomains: $( $this.m_aDomainsCollection.ToString() )"
         "`tInput: $( $this.m_sInputDir )"
         "`tOutput: $( $this.m_sOutputDir )"
     }
 
-    [BuildLog] setDomains( [string[]] $collection ) {
+    [LogBuilder] setDomains( [string[]] $collection ) {
         if( $collection.Count -eq 0 ) {
-            throw 'Usage: [BuildLog]$instance.setDomains( <collection of domain names as [string[]]> )'
+            throw 'Usage: [LogBuilder]$instance.setDomains( <collection of domain names as [string[]]> )'
         }
         $this.m_aDomainsCollection = $collection
         return $this
     }
 
-    [BuildLog] setInputDir( [string] $inputDir ) {
+    [LogBuilder] setInputDir( [string] $inputDir ) {
         if( [string]::IsNullOrWhiteSpace( $inputDir ) ) {
-            throw 'Usage: [BuildLog]$instance.setInputDir( <input directory as [string]> )'
+            throw 'Usage: [LogBuilder]$instance.setInputDir( <input directory as [string]> )'
         }
         $this.m_sInputDir = $inputDir
         return $this
     }
 
-    [BuildLog] setOutputDir( [string] $outputDir ) {
+    [LogBuilder] setOutputDir( [string] $outputDir ) {
         if( [string]::IsNullOrWhiteSpace( $outputDir )  ) {
-            throw 'Usage: [BuildLog]$instance.setOutputDir( <output directory as [string]> )'
+            throw 'Usage: [LogBuilder]$instance.setOutputDir( <output directory as [string]> )'
         }
         $this.m_sOutputDir = $outputDir
         return $this
@@ -112,7 +112,7 @@ class BuildLog {
     .DESCRIPTION
         See synopsis.
     .EXAMPLE
-        [BuildLog]$instance.concatFile()
+        [LogBuilder]$instance.concatFile()
     .PARAMETER sSource
         The source file path as string.
     .PARAMETER sDestination
@@ -120,7 +120,7 @@ class BuildLog {
     #>
         # Check parameters
         if( [string]::IsNullOrWhiteSpace( $sSource ) -or [string]::IsNullOrWhiteSpace( $sDestination ) ) {
-            throw 'Usage: [BuildLog]$instance.concatFile( <source file path as [string]>, <destination file path as [string]> )'
+            throw 'Usage: [LogBuilder]$instance.concatFile( <source file path as [string]>, <destination file path as [string]> )'
         }
 
         # Initialize
@@ -152,7 +152,7 @@ class BuildLog {
     .DESCRIPTION
         See synopsis.
     .EXAMPLE
-        [BuildLog]$instance.concatFiles()
+        [LogBuilder]$instance.concatFiles()
     .PARAMETER source
         The source file path as string.
     .PARAMETER destination
@@ -165,7 +165,7 @@ class BuildLog {
         # Check parameters
         if( [string]::IsNullOrWhiteSpace( $sSource ) -or [string]::IsNullOrWhiteSpace( $sDestination ) `
         -or ( $iYear -eq $null ) -or ( $iMonth -eq $null ) -or ( $iMonth -gt 12 ) -or ( $iMonth -lt 1 ) ) {
-            throw 'Usage: [BuildLog]$instance.concatFiles( <source file path as [string]>, <destination file path as [string]>, <year as [int]>, <month as [int]> )'
+            throw 'Usage: [LogBuilder]$instance.concatFiles( <source file path as [string]>, <destination file path as [string]>, <year as [int]>, <month as [int]> )'
         }
 
         # Initialize
@@ -183,51 +183,23 @@ class BuildLog {
         return $bReturn
     }
 
-    [bool] concatLogFiles( [string] $source ) {
-
-
-
-
-
-        <# Initialize
-        [bool] $bReturn = $true
-        $this.error.code = 0
-        $this.error.message = ''
-
-        # Check parameters
-        if( [string]::IsNullOrWhiteSpace( $source )-or [string]::IsNullOrWhiteSpace( $destination ) ) {
-            throw 'Usage: [BuildLog]$instance.concatLogFiles( <source path as [string]>, <destination path as [string]> )'
-        }
-        $sInputFile = "{0}\{1}\var\log\apache2\{2}\access.log" -f $this.m_sInputDir, $sDayLogFolder, $sDomain
-        $sOutputPath = "{0}\{1}" -f $this.m_sOutputDir, $sDomain
-        $sLogYear = "{0}\{1}.log" -f $sPath, $iYear.ToString()
-        $sLogMonth = "{0}\{1}{2}.log" -f $sPath, $iYear.ToString(), $iMonth.ToString("0#")
-        # Create
-        [string] $sPath = ''
-        [string] $sLogYear = ''
-        [string] $sLogMonth = ''
-        foreach( $sDomain in $this.m_aDomainsCollection ) {
-            $sPath = "{0}\{1}" -f $this.m_sOutputDir, $sDomain
-            $sLogYear = "{0}\{1}.log" -f $sPath, $iYear.ToString()
-            $sLogMonth = "{0}\{1}{2}.log" -f $sPath, $iYear.ToString(), $iMonth.ToString("0#")
-            foreach( $sFile in @( $sLogYear, $sLogMonth ) ) {
-                if( -not $(Test-Path -LiteralPath $sFile -PathType Leaf) ) {
-                    new-item -Force -ItemType File -Path $sFile -Force | Out-Null
-                }
-            }
-        }
-
-        return $bReturn
-        #>
-        return $true
-    }
-
-    [bool] buildLogs( [string[]] $collection ) {
-
+    [bool] build( [string[]] $collection ) {
+    <#
+    .SYNOPSIS
+        Combine all access.log for by year, month and domain. Creates the destination file if does not exist.
+        Assume the access.log file is in $this.m_sInputDir/<log-YYYYMMDD_0625>/var/log/apache2/<domain>/access.log
+        Returns false if the source file is missing and true otherwise.
+    .DESCRIPTION
+        See synopsis.
+    .EXAMPLE
+        [LogBuilder]$instance.build()
+    .PARAMETER collection
+        A collection of folder name (from $this.m_sInputDir) like 'log-20170803_0625'
+    #>
         # Initialize
-        [bool] $bReturn = $true
+        [bool] $bReturn = $false
         [int] $iYear = $iMonth = $iDay = 0
-        #[string] $sAccessLog = ""
+        [string] $sAccessLog = $sDestination = ""
         $this.error.code = 0
         $this.error.message = ''
 
@@ -245,10 +217,21 @@ class BuildLog {
                $iMonth = [int] $date.month
                $iDay = [int] $date.day
             }
-            #$sAccessLog = "{0}\{1}\var\log\apache2\{2}\access.log" -f $this.m_sInputDir, $item
+            # Concat for each domain
+            foreach( $sDomain in $this.m_aDomainsCollection ) {
+                # Build source and destination path
+                $sAccessLog = "{0}\{1}\var\log\apache2\{2}\access.log" -f $this.m_sInputDir, $item, $sDomain
+                $sDestination = "{0}\{1}" -f $this.m_sOutputDir, $sDomain
+                # Concat
+                if( !$this.concatFiles( $sAccessLog, $sDestination, $iYear, $iMonth ) ){
+                    $this.error.code = 1
+                    $this.error.message = "Year: $iYear, Month: $iMonth, Day:$iDay, Domain: $sDomain is missing"
+                    $this.m_pWriter.error( $this.error.message )
+                }
+            }
         }
 
+        if( $this.error.code -eq 0 ) { $bReturn = $true }
         return $bReturn
-
     }
 }
