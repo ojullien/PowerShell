@@ -13,7 +13,7 @@ The tool is very specific to my projects.
 
 Require 7z.exe
 
-Find and rename src/app/saveto/cfg/default.cfg.ps1 to src/app/saveto/cfg/myconfig.cfg.ps1, then edit the file and add source and destination information.
+Find and rename src/app/buildlog/cfg/default.cfg.ps1 to src/app/buildlog/cfg/myconfig.cfg.ps1, then edit the file and add source and destination information.
 
 ```powershell
 PS C:\PowerShell\src> .\buildLog.ps1 -cfg myconfig [options]
