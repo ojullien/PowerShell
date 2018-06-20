@@ -2,7 +2,7 @@
 
 .VERSION 1.3.0
 
-.GUID 7b2e6c14-0001-4ed3-8989-eb37f25c0f8e
+.GUID 944d5dbd-0001-4efd-85e2-3a51548593d3
 
 .AUTHOR Olivier Jullien
 
@@ -20,7 +20,7 @@
 
 .EXTERNALMODULEDEPENDENCIES
 
-.REQUIREDSCRIPTS src\sys\inc\Writer\autoload.ps1, src\sys\inc\Exec\Contig.ps1, src\sys\inc\Exec\Adapter\Stub.ps1
+.REQUIREDSCRIPTS src\sys\inc\Writer\autoload.ps1, src\sys\inc\Exec\7-Zip.ps1, src\sys\inc\Exec\Adapter\Stub.ps1
 
 .EXTERNALSCRIPTDEPENDENCIES
 
@@ -35,7 +35,7 @@ Require .NET Core
 <#
 
 .DESCRIPTION
- Exec\Contig tests
+ Exec\7-Zip tests
 
 #>
 
@@ -43,13 +43,13 @@ Require .NET Core
 # Load Exec files
 # -----------------------------------------------------------------------------
 
-. ("$m_DIR_SYS\inc\Exec\Contig.ps1")
+. ("$m_DIR_SYS\inc\Exec\7-Zip.ps1")
 
 # -----------------------------------------------------------------------------
 # Load data test
 # -----------------------------------------------------------------------------
 
-. ("$m_DIR_TEST_SYS\inc\Exec\Contig-data.ps1")
+. ("$m_DIR_TEST_SYS\inc\Exec\7-Zip-data.ps1")
 
 # ------------------------------------------------------------------------------
 # Test
@@ -58,15 +58,7 @@ Require .NET Core
 foreach( $item in $aTestDataCollection ) {
 
     $pWriterDecorated.separateLine()
-    $pWriterDecorated.notice( "Testing: '$( $item.theInput.theSource )'" )
-
-    # Creates the source path
-    try {
-        [Path] $pSource = [Path]::new( $item.theInput.theSource )
-    } catch {
-        $pWriterDecorated.exception( "Exception raised when creating Filter\Path:  $_" )
-        Exit
-    }
+    $pWriterDecorated.notice( "Testing: '$( $item.theInput.theArchive )'" )
 
     # Creates Adaptater stub
     try {
@@ -77,36 +69,60 @@ foreach( $item in $aTestDataCollection ) {
         Exit
     }
 
-    # Creates contig
+    # Creates 7-Zip
     try {
-        [Contig] $pContig = [Contig]::new( $pSource, $pStub )
-        $pWriterDecorated.notice( [string]$pContig )
+        [SevenZip] $pSevenZip = [SevenZip]::new( $pStub )
     } catch {
-        $pWriterDecorated.exception( "Exception raised when creating Exec\Contig:  $_" )
+        $pWriterDecorated.exception( "Exception raised when creating Exec\SevenZip:  $_" )
         Exit
+    }
+
+    # Archive
+    try {
+        $null = $pSevenZip.setArchive( $item.theInput.theArchive )
+    } catch {
+        if( $item.theExpected.theException ) {
+            $pWriterDecorated.exceptionExpected( "setArchive() raised an expected exception:  $_" )
+        } else {
+            $pWriterDecorated.exception( "setArchive() raised an exception:  $_" )
+        }
+        continue
+    }
+
+    # Output dir
+    try {
+        $null = $pSevenZip.setOutputDir( $item.theInput.theOutputDir )
+    } catch {
+        if( $item.theExpected.theException ) {
+            $pWriterDecorated.exceptionExpected( "setOutputDir() raised an expected exception:  $_" )
+        } else {
+            $pWriterDecorated.exception( "setOutputDir() raised an exception:  $_" )
+        }
+        continue
     }
 
     # Run
     [bool] $bRun = $false
     try {
-        $bRun = $pContig.run()
+        $pWriterDecorated.notice( [string]$pSevenZip )
+        $bRun = $pSevenZip.extract( $item.theInput.theExtractOptions.withfullpaths, $item.theInput.theExtractOptions.file, $item.theInput.theExtractOptions.recurse )
     } catch {
         if( $item.theExpected.theException ) {
-            $pWriterDecorated.exceptionExpected( "run() raised an expected exception:  $_" )
+            $pWriterDecorated.exceptionExpected( "extract() raised an expected exception:  $_" )
         } else {
-            $pWriterDecorated.exception( "run() raised an exception:  $_" )
+            $pWriterDecorated.exception( "extract() raised an exception:  $_" )
         }
         continue
     }
 
-    [string] $sBuffer = "`tRun: $bRun => $( $item.theExpected.theRun )"
-    if( $bRun -eq $item.theExpected.theRun ) {
+    [string] $sBuffer = "`textract: $bRun => $( $item.theExpected.theExtract )"
+    if( $bRun -eq $item.theExpected.theExtract ) {
         $pWriterDecorated.success( $sBuffer )
     } else {
         $pWriterDecorated.error( $sBuffer )
     }
 
-    [int] $iExitCode = $pContig.getExitCode()
+    [int] $iExitCode = $pSevenZip.getExitCode()
     $sBuffer = "`tExitCode: $iExitCode => $( $item.theExpected.theExitCode )"
     if( $iExitCode -eq $item.theExpected.theExitCode ) {
         $pWriterDecorated.success( $sBuffer )
@@ -114,8 +130,7 @@ foreach( $item in $aTestDataCollection ) {
         $pWriterDecorated.error( $sBuffer )
     }
 
-    $pContig = $null
+    $pSevenZip = $null
     $pStub = $null
-    $pSource = $null
 
 }

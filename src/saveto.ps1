@@ -1,6 +1,6 @@
 <#PSScriptInfo
 
-.VERSION 1.2.0
+.VERSION 1.3.0
 
 .GUID 5a516eab-0001-4f39-82f9-f12d189bf98d
 
@@ -25,7 +25,7 @@
 .EXTERNALSCRIPTDEPENDENCIES
 
 .RELEASENOTES
-Date: 20180518
+Date: 20180620
 Require Powershell Version: 6.0.2
 Require .NET Framework 4.7
 Require .NET Core
@@ -66,10 +66,7 @@ New-Variable -Name m_OPTION_WAIT -Force -Option Constant,AllScope -Value $( if( 
 # Load sys\Filter files
 # -----------------------------------------------------------------------------
 
-. ("$m_DIR_SYS\inc\Filter\FilterAbstract.ps1")
-. ("$m_DIR_SYS\inc\Filter\Path.ps1")
-. ("$m_DIR_SYS\inc\Filter\Dir.ps1")
-. ("$m_DIR_SYS\inc\Filter\File.ps1")
+. ("$m_DIR_SYS\inc\Filter\autoload.ps1")
 
 # -----------------------------------------------------------------------------
 # Load sys\Drive files

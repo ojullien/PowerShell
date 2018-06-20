@@ -2,7 +2,7 @@
 
 .VERSION 1.3.0
 
-.GUID eb202f80-0007-47c2-9196-01370ebd498f
+.GUID 323d3bb5-0005-4013-8e9e-142f6d540831
 
 .AUTHOR Olivier Jullien
 
@@ -20,7 +20,7 @@
 
 .EXTERNALMODULEDEPENDENCIES
 
-.REQUIREDSCRIPTS sys\inc\Exec\Adapter\Abstract.ps1
+.REQUIREDSCRIPTS src\sys\inc\Filter\*.ps1
 
 .EXTERNALSCRIPTDEPENDENCIES
 
@@ -35,26 +35,11 @@ Require .NET Core
 <#
 
 .DESCRIPTION
- This class is an adapter stub.
+ Filter autoloader. Loads files containing Filter classes according to options.
 
 #>
 
-class AdapterStub : ExecAdapterAbstract {
-
-    # Properties
-    [int] $exitcode = 0
-
-     # Constructors
-
-    AdapterStub() {
-        $this.m_bSaveOutput = $false
-        $this.m_sOutput = ''
-    }
-
-    # Class methods
-
-    [int] run() {
-        return $this.exitcode
-    }
-
-}
+. ("$m_DIR_SYS\inc\Filter\FilterAbstract.ps1")
+. ("$m_DIR_SYS\inc\Filter\Path.ps1")
+. ("$m_DIR_SYS\inc\Filter\Dir.ps1")
+. ("$m_DIR_SYS\inc\Filter\File.ps1")

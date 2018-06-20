@@ -1,6 +1,6 @@
 <#PSScriptInfo
 
-.VERSION 1.2.0
+.VERSION 1.3.0
 
 .GUID 54ebf841-0002-46f2-ad7c-0e5dd86eeff7
 
@@ -25,7 +25,7 @@
 .EXTERNALSCRIPTDEPENDENCIES
 
 .RELEASENOTES
-Date: 20180518
+Date: 20180620
 Require Powershell Version: 6.0.2
 Require .NET Framework 4.7
 Require .NET Core
@@ -79,4 +79,3 @@ $aTestDataCollection += New-TestFilterPathObject ' ' @{ directoryname = ''; file
 
 $aTestDataCollection += New-TestFilterPathObject '.\does\not\exist.txt' @{ directoryname = '.\does\not'; filename = 'exist.txt'; basename =  'exist'; extension =  '.txt'; pathroot =  ''; isValid = $false; Exception = $false}
 $aTestDataCollection += New-TestFilterPathObject '\does\not\exist.txt' @{ directoryname = '\does\not'; filename = 'exist.txt'; basename =  'exist'; extension =  '.txt'; pathroot =  ''; isValid = $false; Exception = $false}
-
