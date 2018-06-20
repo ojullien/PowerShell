@@ -4,7 +4,25 @@ Personal PowerShell scripting projects.
 
 ## Setup & usage
 
-Require Powershell version: 6.0, .NET Framework 4.7, .NET Core
+Require Powershell version: 6.0.2, .NET Framework 4.7, .NET Core
+
+### buildLog.ps1
+
+This tool build a consistent yearly apache log file from monthly apache log files.
+The tool is very specific to my projects.
+
+Require 7z.exe
+
+Find and rename src/app/saveto/cfg/default.cfg.ps1 to src/app/saveto/cfg/myconfig.cfg.ps1, then edit the file and add source and destination information.
+
+```powershell
+PS C:\PowerShell\src> .\buildLog.ps1 -cfg myconfig [options]
+
+other options
+
+-bequiet    Quiet mode
+-logtofile  Log to a file in the log dir
+```
 
 ### saveto.ps1
 

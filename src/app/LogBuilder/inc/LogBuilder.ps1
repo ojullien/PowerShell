@@ -1,6 +1,6 @@
 <#PSScriptInfo
 
-.VERSION 1.2.0
+.VERSION 1.3.0
 
 .GUID e5f0d849-0002-4c6a-b731-2b6bc8364595
 
@@ -25,7 +25,7 @@
 .EXTERNALSCRIPTDEPENDENCIES
 
 .RELEASENOTES
-Date: 20180518
+Date: 20180620
 Require Powershell Version: 6.0.2
 Require .NET Framework 4.7
 Require .NET Core
@@ -75,7 +75,7 @@ class LogBuilder {
 
     [String] ToString() {
         return "[LogBuilder] Configuration`n" + `
-        "`tDomains: $( $this.m_aDomainsCollection.ToString() )"
+        "`tDomains: $( [string] $( $this.m_aDomainsCollection -join ', ' ) )"
         "`tInput: $( $this.m_sInputDir )"
         "`tOutput: $( $this.m_sOutputDir )"
     }
