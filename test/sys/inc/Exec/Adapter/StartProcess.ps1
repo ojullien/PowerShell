@@ -1,6 +1,6 @@
 <#PSScriptInfo
 
-.VERSION 1.2.0
+.VERSION 1.3.0
 
 .GUID b25327b5-0001-4556-9887-5dfc30aafa5b
 
@@ -25,7 +25,7 @@
 .EXTERNALSCRIPTDEPENDENCIES
 
 .RELEASENOTES
-Date: 20180518
+Date: 20180620
 Require Powershell Version: 6.0.2
 Require .NET Framework 4.7
 Require .NET Core
