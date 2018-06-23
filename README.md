@@ -6,6 +6,7 @@ Personal PowerShell scripting projects.
 
 - [Setup](#setup)
 - [Features](#features)
+- [Test](#test)
 - [Contributing](#contributing)
 - [License](#license)
 
