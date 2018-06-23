@@ -2,9 +2,18 @@
 
 Personal PowerShell scripting projects.
 
-## Setup & usage
+## Table of Contents
+
+- [Setup](#setup)
+- [Features](#features)
+- [Contributing](#contributing)
+- [License](#license)
+
+## Setup
 
 Require Powershell version: 6.0.2, .NET Framework 4.7, .NET Core
+
+## Features
 
 ### buildLog.ps1
 
