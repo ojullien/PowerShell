@@ -4,11 +4,7 @@ Personal PowerShell scripting projects.
 
 ## Table of Contents
 
-- [Setup](#setup)
-- [Features](#features)
-- [Test](#test)
-- [Contributing](#contributing)
-- [License](#license)
+- [Setup](#setup) | [Features](#features) | [Test](#test) | [Contributing](#contributing) | [License](#license)
 
 ## Setup
 
@@ -21,7 +17,7 @@ Require Powershell version: 6.0.2, .NET Framework 4.7, .NET Core
 This tool build a consistent yearly apache log file from monthly apache log files.
 The tool is very specific to my projects.
 
-Require 7z.exe
+Require [7zip](https://www.7-zip.org/)
 
 Find and rename src/app/buildlog/cfg/default.cfg.ps1 to src/app/buildlog/cfg/myconfig.cfg.ps1, then edit the file and add source and destination information.
 
@@ -38,7 +34,7 @@ other options
 
 Is a command-line directory replication command.
 
-Require robocopy.exe and contig.exe from sysinternals suite.
+Require robocopy.exe and contig.exe from (sysinternals suite)[https://docs.microsoft.com/en-us/sysinternals/downloads/sysinternals-suite]
 
 Find and rename src/app/saveto/cfg/default.cfg.ps1 to src/app/saveto/cfg/myconfig.cfg.ps1, then edit the file and add source and destination information.
 

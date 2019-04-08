@@ -1,6 +1,6 @@
 <#PSScriptInfo
 
-.VERSION 1.3.0
+.VERSION 1.3.1
 
 .GUID eb202f80-0010-47c2-9196-01370ebd498f
 
@@ -25,7 +25,7 @@
 .EXTERNALSCRIPTDEPENDENCIES
 
 .RELEASENOTES
-Date: 20180620
+Date: 20190408
 Require Powershell Version: 6.0.2
 Require .NET Framework 4.7
 Require .NET Core
@@ -58,7 +58,7 @@ class SevenZip {
     [ExecAdapterInterface] $m_pAdapter
 
     [ValidateNotNullOrEmpty()]
-    hidden [string] $m_sExePath = 'D:\Program Files\7-Zip\7z.exe'
+    hidden [string] $m_sExePath = 'C:\Program Files\7-Zip\7z.exe'
 
     # Constructors
 
@@ -73,6 +73,8 @@ class SevenZip {
         }
         $this.m_pAdapter = $adapter
         $this.m_iExitCode = 0
+        $this.m_sExePath = Get-ItemPropertyValue -Path 'HKLM:\SOFTWARE\7-Zip' -Name "Path"
+        $this.m_sExePath = $this.m_sExePath + "\7z.exe"
     }
 
     # Class methods
